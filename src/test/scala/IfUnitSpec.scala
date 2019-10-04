@@ -16,33 +16,58 @@ limitations under the License.
 
 import chisel3._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
+import chisel3.util.Cat
 
 class IfUnitSpec extends ChiselFlatSpec {
-  implicit val conf = RV16KConfig()
+  implicit val conf = CAHPConfig()
   conf.debugIf = false
   conf.debugId = false
   conf.debugEx = false
   conf.debugMem = false
   conf.debugWb = false
+
+  conf.test = true
   assert(Driver(() => new IfUnit) {
     c =>
       new PeekPokeTester(c) {
+        poke(c.io.romData, 0x01020304)
+        poke(c.io.jumpAddress, 0)
         poke(c.io.jump, false)
-        poke(c.io.Enable, true.B)
-        for (i <- 0 until 100) {
-          expect(c.io.romAddress, (i<<1).U)
-          step(1)
-        }
+        poke(c.io.enable, true)
+        expect(c.io.testRomCacheState, romCacheStateType.romCacheMiss)
+        expect(c.io.instOut, 0x030201)
+        expect(c.io.romAddress, 0)
+        expect(c.io.stole, false)
+        step(1)
+        poke(c.io.romData, 0x05060708)
+        expect(c.io.testRomCacheState, romCacheStateType.romCacheLoaded)
+        expect(c.io.testRomCache, 0x01020304)
+        expect(c.io.pcAddress, 3)
+        expect(c.io.romAddress, 1)
+        expect(c.io.instOut, 0x060504)
+        expect(c.io.stole, false)
+        poke(c.io.jumpAddress, 0)
         poke(c.io.jump, true)
-        poke(c.io.jumpAddress, 10.U)
         step(1)
-        expect(c.io.romAddress, 10.U)
+        poke(c.io.romData, 0x01020304)
+        expect(c.io.testRomCacheState, romCacheStateType.romCacheMiss)
+        expect(c.io.instOut, 0x030201)
+        expect(c.io.romAddress, 0)
+        expect(c.io.stole, false)
+        poke(c.io.jumpAddress, 2)
+        step(1)
+        poke(c.io.romData, 0x01020304)
         poke(c.io.jump, false)
+        expect(c.io.testRomCacheState, romCacheStateType.romCacheMiss)
+        expect(c.io.romAddress, 0)
+        expect(c.io.stole, true)
         step(1)
-        for (i <- 0 until 100) {
-          expect(c.io.romAddress, ((i<<1) + 12).U)
-          step(1)
-        }
+        poke(c.io.romData, 0x05060708)
+        poke(c.io.testRomCacheState, romCacheStateType.romCacheLoaded)
+        expect(c.io.testRomCache, 0x01020304)
+        expect(c.io.romAddress, 1)
+        expect(c.io.instOut, 0x050403)
+        expect(c.io.stole, false)
       }
   })
 }

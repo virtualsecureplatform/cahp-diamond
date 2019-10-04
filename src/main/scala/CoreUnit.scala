@@ -31,20 +31,22 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
 
   val st = Module(new StateMachine)
 
-  val ifUnit = Module(new IfUnit)
+  //val ifUnit = Module(new IfUnit)
   val idwbUnit = Module(new IdWbUnit)
   val exUnit = Module(new ExUnit)
   val memUnit = Module(new MemUnit)
 
-  ifUnit.io.Enable := st.io.clockIF&&(!idwbUnit.io.ifStole)
+  /*
+  ifUnit.io.enable := st.io.clockIF&&(!idwbUnit.io.ifStole)
   ifUnit.io.jump := idwbUnit.io.jump
   ifUnit.io.jumpAddress := idwbUnit.io.jumpAddress
   io.romAddr := ifUnit.io.romAddress
+   */
 
   idwbUnit.io.inst := io.romInst
   idwbUnit.io.Enable := st.io.clockID
   idwbUnit.io.wbEnable := st.io.clockWB
-  idwbUnit.io.pc := ifUnit.io.romAddress
+  //idwbUnit.io.pc := ifUnit.io.romAddress
   idwbUnit.io.FLAGS := exUnit.io.out.flag
 
   exUnit.io.Enable := st.io.clockEX
