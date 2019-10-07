@@ -34,7 +34,7 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   //val ifUnit = Module(new IfUnit)
   val idwbUnit = Module(new IdWbUnit)
   //val exUnit = Module(new ExUnit)
-  val memUnit = Module(new MemUnit)
+  //val memUnit = Module(new MemUnit)
 
   /*
   ifUnit.io.enable := st.io.clockIF&&(!idwbUnit.io.ifStole)
@@ -62,7 +62,7 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   //exUnit.io.memSignExtIn := idwbUnit.io.memSignExt
   //exUnit.io.memByteEnableIn := idwbUnit.io.memByteEnable
 
-  memUnit.io.Enable := st.io.clockMEM
+  //memUnit.io.Enable := st.io.clockMEM
   //memUnit.io.address := exUnit.io.out.res
   //memUnit.io.in := exUnit.io.memWriteDataOut
   //memUnit.io.memRead := exUnit.io.memReadOut
@@ -71,26 +71,26 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   //memUnit.io.signExt := exUnit.io.memSignExtOut
   //memUnit.io.regWriteEnableIn := exUnit.io.regWriteEnableOut
   //memUnit.io.regWriteIn := exUnit.io.regWriteOut
-  io.memA.address := memUnit.io.memA.address
-  io.memA.in := memUnit.io.memA.in
-  io.memA.writeEnable := memUnit.io.memA.writeEnable
-  memUnit.io.memA.out := io.memA.out
-  io.memB.address := memUnit.io.memB.address
-  io.memB.in := memUnit.io.memB.in
-  io.memB.writeEnable := memUnit.io.memB.writeEnable
-  memUnit.io.memB.out := io.memB.out
+  //io.memA.address := memUnit.io.memA.address
+  //io.memA.in := memUnit.io.memA.in
+  //io.memA.writeEnable := memUnit.io.memA.writeEnable
+  //memUnit.io.memA.out := io.memA.out
+  //io.memB.address := memUnit.io.memB.address
+  //io.memB.in := memUnit.io.memB.in
+  //io.memB.writeEnable := memUnit.io.memB.writeEnable
+  //memUnit.io.memB.out := io.memB.out
 
-  idwbUnit.io.writeData := memUnit.io.out
-  idwbUnit.io.regWriteEnableIn := memUnit.io.regWriteEnableOut
-  idwbUnit.io.regWriteIn := memUnit.io.regWriteOut
+  //idwbUnit.io.writeData := memUnit.io.out
+  //idwbUnit.io.regWriteEnableIn := memUnit.io.regWriteEnableOut
+  //idwbUnit.io.regWriteIn := memUnit.io.regWriteOut
   //idwbUnit.io.exRegWrite := exUnit.io.regWriteOut
   //idwbUnit.io.exRegWriteEnable := exUnit.io.regWriteEnableOut
   //idwbUnit.io.exFwdData := exUnit.io.fwdData
   //idwbUnit.io.exMemRead := exUnit.io.memReadOut
   //idwbUnit.io.exMemWrite := exUnit.io.memWriteOut
-  idwbUnit.io.memRegWrite := memUnit.io.regWriteOut
-  idwbUnit.io.memRegWriteEnable := memUnit.io.regWriteEnableOut
-  idwbUnit.io.memFwdData := memUnit.io.fwdData
+  //idwbUnit.io.memRegWrite := memUnit.io.regWriteOut
+  //idwbUnit.io.memRegWriteEnable := memUnit.io.regWriteEnableOut
+  //idwbUnit.io.memFwdData := memUnit.io.fwdData
 
   io.testRegx8 := idwbUnit.io.testRegx8
   io.testFinish := idwbUnit.io.testFinish

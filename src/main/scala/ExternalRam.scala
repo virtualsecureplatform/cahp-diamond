@@ -15,7 +15,7 @@ limitations under the License.
 */
 import chisel3._
 
-class ExternalRam(implicit val conf:RV16KConfig) extends Module{
+class ExternalRam(implicit val conf:CAHPConfig) extends Module{
   val io = IO(new MemPort)
   val mem = Mem(256, UInt(8.W))
   val pReg = RegInit(0.U.asTypeOf(new MemPort))
