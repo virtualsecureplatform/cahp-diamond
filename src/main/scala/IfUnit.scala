@@ -21,16 +21,24 @@ object romCacheStateType {
   val romCacheMiss:Bool = false.B
   val romCacheLoaded:Bool = true.B
 }
-class IfUnitPort(implicit val conf: CAHPConfig) extends Bundle {
+
+class IfUnitIn(implicit val conf: CAHPConfig) extends Bundle {
   val romData = Input(UInt(conf.romCacheWidth.W))
   val jumpAddress = Input(UInt(conf.romAddrWidth.W))
   val jump = Input(Bool())
-  val enable = Input(Bool())
+}
 
+class IfUnitOut(implicit val conf: CAHPConfig) extends Bundle {
   val pcAddress = Output(UInt(conf.romAddrWidth.W))
   val romAddress = Output(UInt((conf.romAddrWidth-2).W))
   val instOut = Output(UInt(conf.longInstWidth.W))
   val stole = Output(Bool())
+}
+
+class IfUnitPort(implicit val conf: CAHPConfig) extends Bundle {
+  val in = new IfUnitIn
+  val out = new IfUnitOut
+  val enable = Input(Bool())
 
   val testRomCacheState = if (conf.test) Output(Bool()) else Output(UInt(0.W))
   val testRomCache = if (conf.test) Output(UInt(32.W)) else Output(UInt(0.W))
@@ -47,27 +55,27 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
 
 
   // **** I/O Connection ****
-  pc.io.jumpAddress := io.jumpAddress
-  pc.io.jump := io.jump
+  pc.io.jumpAddress := io.in.jumpAddress
+  pc.io.jump := io.in.jump
   pc.io.enable := io.enable&&(!stole)
-  pc.io.longInst := io.instOut(0) === 1.U
+  pc.io.longInst := io.out.instOut(0) === 1.U
 
-  io.pcAddress := pc.io.pcOut
-  io.stole := stole
+  io.out.pcAddress := pc.io.pcOut
+  io.out.stole := stole
 
   // **** Test I/O Connection ****
   io.testRomCacheState := romCacheState
   io.testRomCache := romCache
 
   // **** Sequential Circuit ****
-  romCache := io.romData
+  romCache := io.in.romData
   romCacheState := romCacheState
   when(romCacheState === romCacheStateType.romCacheMiss){
-    when(!io.jump){
+    when(!io.in.jump){
       romCacheState := romCacheStateType.romCacheLoaded
     }
   }.otherwise{
-    when(io.jump){
+    when(io.in.jump){
       romCacheState := romCacheStateType.romCacheMiss
     }
   }
@@ -104,23 +112,23 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
 
   stole := false.B
   when(romCacheState === romCacheStateType.romCacheMiss){
-    io.romAddress := io.pcAddress(conf.romAddrWidth-1, 2)
+    io.out.romAddress := io.out.pcAddress(conf.romAddrWidth-1, 2)
 
     val isInstLong:Bool = Wire(Bool())
-    isInstLong := getInstOpByte(io.pcAddress, io.romData)(0) === 1.U
-    io.instOut := getInst(io.pcAddress, 0.U, io.romData)
+    isInstLong := getInstOpByte(io.out.pcAddress, io.in.romData)(0) === 1.U
+    io.out.instOut := getInst(io.out.pcAddress, 0.U, io.in.romData)
 
-    when((io.pcAddress(1, 0) === 3.U)||((io.pcAddress(1) === 1.U) && isInstLong)){
+    when((io.out.pcAddress(1, 0) === 3.U)||((io.out.pcAddress(1) === 1.U) && isInstLong)){
       stole := true.B
     }
   }.otherwise{
-    io.romAddress := io.pcAddress(conf.romAddrWidth-1, 2) + 1.U
+    io.out.romAddress := io.out.pcAddress(conf.romAddrWidth-1, 2) + 1.U
 
-    io.instOut := getInst(io.pcAddress, io.romData, romCache)
+    io.out.instOut := getInst(io.out.pcAddress, io.in.romData, romCache)
   }
 
   when(conf.debugIf.B){
-    printf("\n[IF]PC Address:0x%x\n", io.romAddress)
+    printf("\n[IF]PC Address:0x%x\n", io.out.romAddress)
   }
 }
 

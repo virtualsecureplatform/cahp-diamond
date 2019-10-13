@@ -16,6 +16,6 @@ limitations under the License.
 import chisel3._
 
 object Main extends App {
-  implicit val conf = RV16KConfig()
+  implicit val conf = CAHPConfig()
   chisel3.Driver.execute(args, () => new IdWbUnit())
 }

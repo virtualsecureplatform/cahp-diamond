@@ -29,10 +29,9 @@ class CoreUnitPort(implicit val conf:RV16KConfig) extends Bundle {
 class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   val io = IO(new CoreUnitPort)
 
-  val st = Module(new StateMachine)
 
   //val ifUnit = Module(new IfUnit)
-  val idwbUnit = Module(new IdWbUnit)
+  //val idwbUnit = Module(new IdWbUnit)
   //val exUnit = Module(new ExUnit)
   //val memUnit = Module(new MemUnit)
 
@@ -43,9 +42,9 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   io.romAddr := ifUnit.io.romAddress
    */
 
-  idwbUnit.io.inst := io.romInst
-  idwbUnit.io.Enable := st.io.clockID
-  idwbUnit.io.wbEnable := st.io.clockWB
+  //idwbUnit.io.inst := io.romInst
+  //idwbUnit.io.Enable := st.io.clockID
+  //idwbUnit.io.wbEnable := st.io.clockWB
   //idwbUnit.io.pc := ifUnit.io.romAddress
   //idwbUnit.io.FLAGS := exUnit.io.out.flag
 
@@ -92,6 +91,6 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   //idwbUnit.io.memRegWriteEnable := memUnit.io.regWriteEnableOut
   //idwbUnit.io.memFwdData := memUnit.io.fwdData
 
-  io.testRegx8 := idwbUnit.io.testRegx8
-  io.testFinish := idwbUnit.io.testFinish
+  //io.testRegx8 := idwbUnit.io.testRegx8
+  //io.testFinish := idwbUnit.io.testFinish
 }

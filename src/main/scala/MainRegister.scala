@@ -16,34 +16,33 @@ limitations under the License.
 
 import chisel3._
 
-class MainRegisterPort(implicit val conf:RV16KConfig) extends Bundle {
-  val rs = Input(UInt(4.W))
+class MainRegisterPort(implicit val conf:CAHPConfig) extends Bundle {
+  val rs1 = Input(UInt(4.W))
+  val rs2 = Input(UInt(4.W))
   val rd = Input(UInt(4.W))
-  val writeReg = Input(UInt(4.W))
   val writeEnable = Input(Bool())
   val writeData = Input(UInt(16.W))
 
-  val rsData = Output(UInt(16.W))
-  val rdData = Output(UInt(16.W))
+  val rs1Data = Output(UInt(16.W))
+  val rs2Data = Output(UInt(16.W))
 
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testPC = if(conf.test) Input(UInt(9.W)) else Input(UInt(0.W))
 }
 
-class MainRegister(implicit val conf:RV16KConfig) extends Module{
+class MainRegister(implicit val conf:CAHPConfig) extends Module{
   val io = IO(new MainRegisterPort)
 
   val MainReg = Mem(16, UInt(16.W))
 
-  io.rsData := MainReg(io.rs)
-  io.rdData := MainReg(io.rd)
+  io.rs1Data := MainReg(io.rs1)
+  io.rs2Data := MainReg(io.rs2)
 
   when(io.writeEnable) {
-    MainReg(io.writeReg) := io.writeData
+    MainReg(io.rd) := io.writeData
     when(conf.debugWb.B) {
-      printf("%x Reg x%d <= 0x%x\n", io.testPC, io.writeReg, io.writeData)
+      printf("%x Reg x%d <= 0x%x\n", io.testPC, io.rd, io.writeData)
     }
-  }.otherwise {}
-
+  }
   io.testRegx8 := MainReg(8)
 }

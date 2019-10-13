@@ -26,7 +26,11 @@ class ExUnitPort extends Bundle {
 class ExUnitIn extends Bundle {
   val inA = Input(UInt(16.W))
   val inB = Input(UInt(16.W))
-  val opcode = Input(UInt(3.W))
+  val opcode = Input(UInt(4.W))
+
+  val pcOpcode = Input(UInt(3.W))
+  val pc = Input(UInt(16.W))
+  val pcImm = Input(UInt(16.W))
 }
 
 class ExUnitOut extends Bundle {
@@ -57,6 +61,8 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     io.out.res := (pExReg.inA >> pExReg.inB).asUInt()
   }.elsewhen(pExReg.opcode === ALUOpcode.ASR) {
     io.out.res := (pExReg.inA.asSInt() >> pExReg.inB).asUInt()
+  }.elsewhen(pExReg.opcode === ALUOpcode.MOV) {
+    io.out.res := pExReg.inB
   }.otherwise {
     io.out.res := DontCare
   }
@@ -68,12 +74,13 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   }
 }
 object ALUOpcode {
-  def ADD = BitPat("b000")
-  def SUB = BitPat("b001")
-  def AND = BitPat("b010")
-  def XOR = BitPat("b011")
-  def OR  = BitPat("b100")
-  def LSL = BitPat("b101")
-  def LSR = BitPat("b110")
-  def ASR = BitPat("b111")
+  def ADD = BitPat("b0000")
+  def SUB = BitPat("b0001")
+  def AND = BitPat("b0010")
+  def XOR = BitPat("b0011")
+  def OR  = BitPat("b0100")
+  def LSL = BitPat("b0101")
+  def LSR = BitPat("b0110")
+  def ASR = BitPat("b0111")
+  def MOV = BitPat("b1000")
 }

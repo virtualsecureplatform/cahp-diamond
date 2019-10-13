@@ -1,4 +1,4 @@
-name := "chap-diamond"
+name := "cahp-diamond"
 
 version := "0.1"
 
