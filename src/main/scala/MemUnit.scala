@@ -156,6 +156,7 @@ class MemUnit(implicit val conf:CAHPConfig) extends Module {
   }
 
   when(conf.debugMem.B){
+    printf("[MEM] MemOut:0x%x\n", io.out.out)
     when(pMemReg.memRead) {
       printf("[MEM] MemRead Mem[0x%x] => Data:0x%x\n", pMemReg.address, io.out.out)
     }

@@ -25,12 +25,12 @@ class TopUnitPort(implicit val conf:RV16KConfig) extends Bundle {
 
 class TopUnit(implicit val conf:RV16KConfig) extends Module{
   val io = IO(new TopUnitPort)
-  val core = Module(new CoreUnit)
+  //val core = Module(new CoreUnit)
   //val memA = Module(new ExternalRam)
   //val memB = Module(new ExternalRam)
 
-  core.io.romInst := io.romInst
-  io.romAddr := core.io.romAddr
+  //core.io.romInst := io.romInst
+  //io.romAddr := core.io.romAddr
 
   /*
   memA.io.address := core.io.memA.address
@@ -43,5 +43,5 @@ class TopUnit(implicit val conf:RV16KConfig) extends Module{
   core.io.memB.out := memB.io.out
   */
 
-  io.testRegx8 := core.io.testRegx8
+  //io.testRegx8 := core.io.testRegx8
 }

@@ -17,7 +17,7 @@ limitations under the License.
 import chisel3._
 import chisel3.util.{BitPat, Cat}
 
-class ExUnitPort extends Bundle {
+class ExUnitPort(implicit val conf:CAHPConfig) extends Bundle {
   val in = new ExUnitIn
   val enable = Input(Bool())
 
@@ -33,13 +33,43 @@ class ExUnitIn extends Bundle {
   val pcImm = Input(UInt(16.W))
 }
 
-class ExUnitOut extends Bundle {
+class ExUnitOut(implicit val conf:CAHPConfig) extends Bundle {
   val res = Output(UInt(16.W))
+  val jumpAddress = Output(UInt(conf.romAddrWidth.W))
+  val jump = Output(Bool())
 }
 
 class ExUnit(implicit val conf:CAHPConfig) extends Module {
   val io = IO(new ExUnitPort)
   val pExReg = RegInit(0.U.asTypeOf(new ExUnitIn))
+
+  def check_overflow(s1: UInt, s2: UInt, r: UInt) = {
+    val s1_sign = Wire(UInt(1.W))
+    val s2_sign = Wire(UInt(1.W))
+    val res_sign = Wire(UInt(1.W))
+    val res = Wire(Bool())
+    s1_sign := s1(15)
+    s2_sign := s2(15)
+    res_sign := r(15)
+    when(((s1_sign ^ s2_sign) === 0.U) && ((s2_sign ^ res_sign) === 1.U)) {
+      res := true.B
+    }.otherwise {
+      res := false.B
+    }
+    res
+  }
+
+  val flagCarry = Wire(Bool())
+  val flagOverflow = Wire(Bool())
+  val flagSign = Wire(Bool())
+  val flagZero = Wire(Bool())
+  val resCarry = Wire(UInt(17.W))
+
+  flagCarry := DontCare
+  flagOverflow := DontCare
+  flagSign := DontCare
+  flagZero := DontCare
+  resCarry := DontCare
 
   when(io.enable) {
     pExReg := io.in
@@ -48,7 +78,10 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   when(pExReg.opcode === ALUOpcode.ADD) {
     io.out.res := pExReg.inA + pExReg.inB
   }.elsewhen(pExReg.opcode === ALUOpcode.SUB) {
-    io.out.res := pExReg.inA - pExReg.inB
+    val inB_sub = Wire(UInt(16.W))
+    inB_sub := (~pExReg.inB).asUInt()+1.U
+    resCarry := pExReg.inA +& inB_sub
+    io.out.res := resCarry(15, 0)
   }.elsewhen(pExReg.opcode === ALUOpcode.AND) {
     io.out.res := pExReg.inA & pExReg.inB
   }.elsewhen(pExReg.opcode === ALUOpcode.OR) {
@@ -66,6 +99,29 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   }.otherwise {
     io.out.res := DontCare
   }
+
+  io.out.jumpAddress := io.in.pc+io.in.pcImm
+  flagCarry := ~resCarry(16)
+  flagSign := io.out.res(15)
+  flagZero := (io.out.res === 0.U(16.W))
+  flagOverflow := check_overflow(pExReg.inA, pExReg.inB, io.out.res)
+  io.out.jump := false.B
+  when(io.in.pcOpcode === 1.U){
+    io.out.jump := flagZero
+  }.elsewhen(io.in.pcOpcode === 2.U){
+    io.out.jump := flagCarry
+  }.elsewhen(io.in.pcOpcode === 3.U){
+    io.out.jump := flagCarry||flagZero
+  }.elsewhen(io.in.pcOpcode === 4.U){
+    io.out.jump := true.B
+  }.elsewhen(io.in.pcOpcode === 5.U){
+    io.out.jump := !flagZero
+  }.elsewhen(io.in.pcOpcode === 6.U){
+    io.out.jump := (flagSign != flagOverflow)
+  }.elsewhen(io.in.pcOpcode === 7.U){
+    io.out.jump := (flagSign != flagOverflow)||flagZero
+  }
+
   when(conf.debugEx.B) {
     printf("[EX] opcode:0x%x\n", pExReg.opcode)
     printf("[EX] inA:0x%x\n", pExReg.inA)

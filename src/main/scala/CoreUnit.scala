@@ -16,8 +16,8 @@ limitations under the License.
 
 import chisel3._
 
-class CoreUnitPort(implicit val conf:RV16KConfig) extends Bundle {
-  val romInst = Input(UInt(16.W))
+class CoreUnitPort(implicit val conf:CAHPConfig) extends Bundle {
+  val romInst = Input(UInt(conf.romCacheWidth.W))
   val romAddr = Output(UInt(conf.romAddrWidth.W))
   val memA = Flipped(new MemPort)
   val memB = Flipped(new MemPort)
@@ -26,48 +26,51 @@ class CoreUnitPort(implicit val conf:RV16KConfig) extends Bundle {
   val testFinish = if (conf.test) Output(Bool()) else Output(UInt(0.W))
 }
 
-class CoreUnit(implicit val conf: RV16KConfig) extends Module {
+class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   val io = IO(new CoreUnitPort)
 
 
-  //val ifUnit = Module(new IfUnit)
-  //val idwbUnit = Module(new IdWbUnit)
-  //val exUnit = Module(new ExUnit)
-  //val memUnit = Module(new MemUnit)
+  val st = Module(new StateMachine)
+  val ifUnit = Module(new IfUnit)
+  val idwbUnit = Module(new IdWbUnit)
+  val exUnit = Module(new ExUnit)
+  val memUnit = Module(new MemUnit)
 
-  /*
-  ifUnit.io.enable := st.io.clockIF&&(!idwbUnit.io.ifStole)
-  ifUnit.io.jump := idwbUnit.io.jump
-  ifUnit.io.jumpAddress := idwbUnit.io.jumpAddress
-  io.romAddr := ifUnit.io.romAddress
-   */
 
-  //idwbUnit.io.inst := io.romInst
-  //idwbUnit.io.Enable := st.io.clockID
+  ifUnit.io.enable := st.io.clockIF
+  ifUnit.io.in.jump := false.B
+  ifUnit.io.in.jumpAddress := DontCare
+  ifUnit.io.in.romData := io.romInst
+  io.romAddr := ifUnit.io.out.romAddress
+
+  io.memA.address := DontCare
+  io.memA.in := DontCare
+  io.memA.writeEnable := DontCare
+  io.memB.address := DontCare
+  io.memB.in := DontCare
+  io.memB.writeEnable := DontCare
+  io.testFinish := DontCare
+  io.testRegx8 := DontCare
+
+
+  idwbUnit.io.idIn.inst := ifUnit.io.out.instOut
+  idwbUnit.io.idIn.pc := ifUnit.io.out.pcAddress
+  idwbUnit.io.idEnable := st.io.clockID
+  idwbUnit.io.wbEnable := st.io.clockWB
+  idwbUnit.io.wbIn.regWrite := DontCare
+  idwbUnit.io.wbIn.regWriteEnable := DontCare
+  idwbUnit.io.wbIn.regWriteData := DontCare
   //idwbUnit.io.wbEnable := st.io.clockWB
   //idwbUnit.io.pc := ifUnit.io.romAddress
   //idwbUnit.io.FLAGS := exUnit.io.out.flag
 
-  //exUnit.io.Enable := st.io.clockEX
-  //exUnit.io.shifterSig := idwbUnit.io.shifterSig
-  //exUnit.io.in.opcode := idwbUnit.io.exOpcode
-  //exUnit.io.in.inA := idwbUnit.io.rdData
-  //exUnit.io.in.inB := idwbUnit.io.rsData
-  //exUnit.io.memWriteDataIn := idwbUnit.io.memWriteData
-  //exUnit.io.memReadIn := idwbUnit.io.memRead
-  //exUnit.io.memWriteIn := idwbUnit.io.memWrite
-  //exUnit.io.regWriteEnableIn := idwbUnit.io.regWriteEnableOut
-  //exUnit.io.regWriteIn := idwbUnit.io.regWriteOut
-  //exUnit.io.memSignExtIn := idwbUnit.io.memSignExt
-  //exUnit.io.memByteEnableIn := idwbUnit.io.memByteEnable
+  exUnit.io.enable := st.io.clockEX
+  exUnit.io.in := idwbUnit.io.exOut
 
-  //memUnit.io.Enable := st.io.clockMEM
-  //memUnit.io.address := exUnit.io.out.res
-  //memUnit.io.in := exUnit.io.memWriteDataOut
-  //memUnit.io.memRead := exUnit.io.memReadOut
-  //memUnit.io.memWrite := exUnit.io.memWriteOut
-  //memUnit.io.byteEnable := exUnit.io.memByteEnableOut
-  //memUnit.io.signExt := exUnit.io.memSignExtOut
+  memUnit.io.enable := st.io.clockMEM
+  memUnit.io.in := idwbUnit.io.memOut
+  memUnit.io.in.address := exUnit.io.out.res
+  memUnit.io.in.in := DontCare
   //memUnit.io.regWriteEnableIn := exUnit.io.regWriteEnableOut
   //memUnit.io.regWriteIn := exUnit.io.regWriteOut
   //io.memA.address := memUnit.io.memA.address
@@ -79,9 +82,8 @@ class CoreUnit(implicit val conf: RV16KConfig) extends Module {
   //io.memB.writeEnable := memUnit.io.memB.writeEnable
   //memUnit.io.memB.out := io.memB.out
 
-  //idwbUnit.io.writeData := memUnit.io.out
-  //idwbUnit.io.regWriteEnableIn := memUnit.io.regWriteEnableOut
-  //idwbUnit.io.regWriteIn := memUnit.io.regWriteOut
+  idwbUnit.io.wbIn := idwbUnit.io.wbOut
+  idwbUnit.io.wbIn.regWriteData := memUnit.io.out.out
   //idwbUnit.io.exRegWrite := exUnit.io.regWriteOut
   //idwbUnit.io.exRegWriteEnable := exUnit.io.regWriteEnableOut
   //idwbUnit.io.exFwdData := exUnit.io.fwdData

@@ -129,6 +129,8 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
 
   when(conf.debugIf.B){
     printf("\n[IF]PC Address:0x%x\n", io.out.romAddress)
+    printf("[IF] Instruction Out:%x\n", io.out.instOut)
+    printf("[IF] Stole:%d\n", io.out.stole)
   }
 }
 

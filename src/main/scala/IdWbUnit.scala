@@ -18,8 +18,8 @@ import chisel3._
 import chisel3.util.{Cat, Fill}
 
 class IdUnitIn(implicit val conf:CAHPConfig) extends Bundle {
-  val inst = Input(UInt(conf.longInstWidth.W))
-  val pc = Input(UInt(conf.romAddrWidth.W))
+  val inst = Input(UInt(24.W))
+  val pc = Input(UInt(9.W))
 }
 
 class WbUnitIn(implicit val conf:CAHPConfig) extends Bundle {
@@ -38,12 +38,14 @@ class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val memOut = Flipped(new MemUnitIn)
   val wbOut = Flipped(new WbUnitIn)
 
+  /*
   val debugRs = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
   val debugRd = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
   val debugRegWrite = if(conf.test) Output(Bool()) else Output(UInt(0.W))
   val debugImmLongState = if(conf.test) Output(Bool()) else Output(UInt(0.W))
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testFinish = if (conf.test) Output(Bool()) else Output(UInt(0.W))
+   */
 }
 
 class DecoderPort(implicit val conf:CAHPConfig) extends Bundle {
@@ -251,7 +253,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
     memRead := false.B
     when(inst(2, 1) === InstructionCategory.InstM){
       when(inst(3) === 0.U){
-        when(inst(5, 0) != "b110101".U(6.W) && inst(5, 0) != "b110100".U(6.W) && inst(5, 0) != "b000100".U(6.W)){
+        when(inst(5, 0) != "b110101".U(6.W) && inst(5, 0) != "b110100".U(6.W) && inst(5, 0) != "b100".U(6.W)){
           memRead := true.B
         }
       }
@@ -399,7 +401,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   mainRegister.io.rs2 := decoder.io.rs2
   mainRegister.io.rd := io.wbIn.regWrite
   mainRegister.io.writeData := io.wbIn.regWriteData
-  mainRegister.io.writeEnable := io.wbIn.regWriteEnable
+  mainRegister.io.writeEnable := io.wbIn.regWriteEnable&&io.wbEnable
 
   io.exOut := decoder.io.exOut
   io.exOut.pc := io.idIn.pc
@@ -408,16 +410,16 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   }.otherwise{
     io.exOut.pcImm := mainRegister.io.rs1Data
   }
-  when(decoder.io.inASel){
+  when(!decoder.io.inASel){
     io.exOut.inA := mainRegister.io.rs1Data
   }.otherwise{
     io.exOut.inA := pIdReg.pc
   }
-  when(decoder.io.inBSel){
+  when(!decoder.io.inBSel){
     io.exOut.inB := mainRegister.io.rs2Data
   }.otherwise{
     //LUI
-    when(pIdReg.inst(5, 0) === "0b000100".U(6.W)){
+    when(pIdReg.inst(5, 0) === "b000100".U(6.W)){
       io.exOut.inB := Cat(decoder.io.imm(5, 0), mainRegister.io.rs2Data(9, 0))
     }.otherwise{
       io.exOut.inB := decoder.io.imm
@@ -430,6 +432,9 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   io.wbOut := decoder.io.wbOut
 
   when(conf.debugId.B){
+    printf("[ID] PC Address:0x%x\n", pIdReg.pc)
     printf("[ID] Instruction:0x%x\n", pIdReg.inst)
+    printf("[ID] Imm:0x%x\n", decoder.io.imm)
+    printf("[ID] RegWrite:0x%x\n", decoder.io.wbOut.regWrite)
   }
 }
