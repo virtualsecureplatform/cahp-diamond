@@ -43,9 +43,9 @@ class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val debugRd = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
   val debugRegWrite = if(conf.test) Output(Bool()) else Output(UInt(0.W))
   val debugImmLongState = if(conf.test) Output(Bool()) else Output(UInt(0.W))
-  val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testFinish = if (conf.test) Output(Bool()) else Output(UInt(0.W))
    */
+  val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
 }
 
 class DecoderPort(implicit val conf:CAHPConfig) extends Bundle {
@@ -431,6 +431,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
 
   io.wbOut := decoder.io.wbOut
 
+  io.testRegx8 := mainRegister.io.testRegx8
   when(conf.debugId.B){
     printf("[ID] PC Address:0x%x\n", pIdReg.pc)
     printf("[ID] Instruction:0x%x\n", pIdReg.inst)

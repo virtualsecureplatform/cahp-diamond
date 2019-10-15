@@ -68,15 +68,17 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   io.testRomCache := romCache
 
   // **** Sequential Circuit ****
-  romCache := io.in.romData
-  romCacheState := romCacheState
-  when(romCacheState === romCacheStateType.romCacheMiss){
-    when(!io.in.jump){
-      romCacheState := romCacheStateType.romCacheLoaded
-    }
-  }.otherwise{
-    when(io.in.jump){
-      romCacheState := romCacheStateType.romCacheMiss
+  when(io.enable) {
+    romCache := io.in.romData
+    romCacheState := romCacheState
+    when(romCacheState === romCacheStateType.romCacheMiss) {
+      when(!io.in.jump) {
+        romCacheState := romCacheStateType.romCacheLoaded
+      }
+    }.otherwise {
+      when(io.in.jump) {
+        romCacheState := romCacheStateType.romCacheMiss
+      }
     }
   }
 
@@ -85,13 +87,13 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   def getInstOpByte(pc:UInt, block:UInt):UInt = {
     val res = Wire(UInt(8.W))
     when(pc(1,0) === 0.U){
-      res := block(31, 24)
-    }.elsewhen(pc(1,0) === 1.U){
-      res := block(23, 16)
-    }.elsewhen(pc(1,0) === 2.U){
-      res := block(15, 8)
-    }.otherwise {
       res := block(7, 0)
+    }.elsewhen(pc(1,0) === 1.U){
+      res := block(15, 8)
+    }.elsewhen(pc(1,0) === 2.U){
+      res := block(23, 16)
+    }.otherwise {
+      res := block(31, 24)
     }
     res
   }
@@ -99,13 +101,13 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   def getInst(pc:UInt, upperBlock:UInt, lowerBlock:UInt):UInt = {
     val inst = Wire(UInt(24.W))
     when(pc(1,0) === 0.U){
-      inst := Cat(lowerBlock(15, 8), lowerBlock(23, 16), lowerBlock(31, 24))
+      inst := Cat(lowerBlock(23, 16), lowerBlock(15, 8), lowerBlock(7, 0))
     }.elsewhen(pc(1,0) === 1.U){
-      inst := Cat(lowerBlock(7, 0), lowerBlock(15, 8), lowerBlock(23, 16))
+      inst := Cat(lowerBlock(31, 24), lowerBlock(23, 16), lowerBlock(15, 8))
     }.elsewhen(pc(1,0) === 2.U){
-      inst := Cat(upperBlock(31, 24), lowerBlock(7, 0), lowerBlock(15, 8))
+      inst := Cat(upperBlock(7, 0), lowerBlock(31, 24), lowerBlock(23, 16))
     }.otherwise {
-      inst := Cat(upperBlock(23, 16), upperBlock(31, 24), lowerBlock(7, 0))
+      inst := Cat(upperBlock(15, 8), upperBlock(7, 0), lowerBlock(31, 24))
     }
     inst
   }
@@ -128,7 +130,7 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   }
 
   when(conf.debugIf.B){
-    printf("\n[IF]PC Address:0x%x\n", io.out.romAddress)
+    printf("\n[IF]PC Address:0x%x\n", io.out.pcAddress)
     printf("[IF] Instruction Out:%x\n", io.out.instOut)
     printf("[IF] Stole:%d\n", io.out.stole)
   }

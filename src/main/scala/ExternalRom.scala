@@ -15,9 +15,9 @@ limitations under the License.
 */
 import scala.io.Source
 
-class ExternalRom(romData:Map[Int,Int]) {
+class ExternalRom(romData:Map[BigInt,BigInt]) {
   var finFlag = false
-  def readInst(addr:Int):Int = {
+  def readInst(addr:BigInt):BigInt = {
     val data = romData.get(addr)
     if(data.isDefined){
       data.get

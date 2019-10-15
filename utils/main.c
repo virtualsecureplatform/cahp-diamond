@@ -73,9 +73,9 @@ int main(int argc, char* argv[]){
             assert(Shdr[i].sh_addr == 0 && "The beginning address of .text section should be 0.");
 
             uint8_t *obj = (uint8_t *)(file_buffer+Shdr[i].sh_offset);
-            for(int j=0;j<Shdr[i].sh_size;j+=2){
-                uint16_t hex = obj[j] + (obj[j+1]<<8);
-                printf("ROM %04X %04X\n", j, hex);
+            for(int j=0;j<Shdr[i].sh_size;j+=4){
+                uint32_t hex = (obj[j+3]<<24) + (obj[j+2]<<16) + (obj[j+1]<<8) + obj[j];
+                printf("ROM %04X %08X\n", j/4, hex);
             }
             /*
             for(int j=0;j<Shdr[i].sh_size;j+=2){

@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-class ExternalTestRam(ram:Map[Int,Int]) {
+class ExternalTestRam(ram:Map[BigInt,BigInt]) {
   var write = false
-  var addr = 0;
-  var data = 0;
-  var ramData:Map[Int, Int] = ram
+  var addr:BigInt = 0
+  var data:BigInt = 0
+  var ramData:Map[BigInt, BigInt] = ram
 
-  def step(writeIn:Boolean, addrIn:Int, dataIn:Int): Unit ={
+  def step(writeIn:Boolean, addrIn:BigInt, dataIn:BigInt): Unit ={
     if(write){
       memWrite()
     }else{
@@ -28,13 +28,13 @@ class ExternalTestRam(ram:Map[Int,Int]) {
     }
     fetch(writeIn, addrIn, dataIn)
   }
-  def fetch(writeIn:Boolean, addrIn:Int, dataIn:Int): Unit ={
+  def fetch(writeIn:Boolean, addrIn:BigInt, dataIn:BigInt): Unit ={
     write = writeIn
     addr = addrIn
     data = dataIn
   }
 
-  def memRead():Int = {
+  def memRead():BigInt = {
     val data = ramData.get(addr)
 
     if(data.isDefined){

@@ -50,19 +50,13 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   io.memB.in := DontCare
   io.memB.writeEnable := DontCare
   io.testFinish := DontCare
-  io.testRegx8 := DontCare
+  io.testRegx8 := idwbUnit.io.testRegx8
 
 
   idwbUnit.io.idIn.inst := ifUnit.io.out.instOut
   idwbUnit.io.idIn.pc := ifUnit.io.out.pcAddress
   idwbUnit.io.idEnable := st.io.clockID
   idwbUnit.io.wbEnable := st.io.clockWB
-  idwbUnit.io.wbIn.regWrite := DontCare
-  idwbUnit.io.wbIn.regWriteEnable := DontCare
-  idwbUnit.io.wbIn.regWriteData := DontCare
-  //idwbUnit.io.wbEnable := st.io.clockWB
-  //idwbUnit.io.pc := ifUnit.io.romAddress
-  //idwbUnit.io.FLAGS := exUnit.io.out.flag
 
   exUnit.io.enable := st.io.clockEX
   exUnit.io.in := idwbUnit.io.exOut
@@ -70,28 +64,17 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   memUnit.io.enable := st.io.clockMEM
   memUnit.io.in := idwbUnit.io.memOut
   memUnit.io.in.address := exUnit.io.out.res
-  memUnit.io.in.in := DontCare
-  //memUnit.io.regWriteEnableIn := exUnit.io.regWriteEnableOut
-  //memUnit.io.regWriteIn := exUnit.io.regWriteOut
-  //io.memA.address := memUnit.io.memA.address
-  //io.memA.in := memUnit.io.memA.in
-  //io.memA.writeEnable := memUnit.io.memA.writeEnable
-  //memUnit.io.memA.out := io.memA.out
-  //io.memB.address := memUnit.io.memB.address
-  //io.memB.in := memUnit.io.memB.in
-  //io.memB.writeEnable := memUnit.io.memB.writeEnable
-  //memUnit.io.memB.out := io.memB.out
+  io.memA.address := memUnit.io.memA.address
+  io.memA.in := memUnit.io.memA.in
+  io.memA.writeEnable := memUnit.io.memA.writeEnable
+  memUnit.io.memA.out := io.memA.out
+  io.memB.address := memUnit.io.memB.address
+  io.memB.in := memUnit.io.memB.in
+  io.memB.writeEnable := memUnit.io.memB.writeEnable
+  memUnit.io.memB.out := io.memB.out
 
   idwbUnit.io.wbIn := idwbUnit.io.wbOut
   idwbUnit.io.wbIn.regWriteData := memUnit.io.out.out
-  //idwbUnit.io.exRegWrite := exUnit.io.regWriteOut
-  //idwbUnit.io.exRegWriteEnable := exUnit.io.regWriteEnableOut
-  //idwbUnit.io.exFwdData := exUnit.io.fwdData
-  //idwbUnit.io.exMemRead := exUnit.io.memReadOut
-  //idwbUnit.io.exMemWrite := exUnit.io.memWriteOut
-  //idwbUnit.io.memRegWrite := memUnit.io.regWriteOut
-  //idwbUnit.io.memRegWriteEnable := memUnit.io.regWriteEnableOut
-  //idwbUnit.io.memFwdData := memUnit.io.fwdData
 
   //io.testRegx8 := idwbUnit.io.testRegx8
   //io.testFinish := idwbUnit.io.testFinish

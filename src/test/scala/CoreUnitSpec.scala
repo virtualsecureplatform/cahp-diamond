@@ -20,17 +20,17 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class CoreUnitSpec() extends ChiselFlatSpec {
   implicit val conf = CAHPConfig()
-  conf.debugIf = true
-  conf.debugId = true
-  conf.debugEx = true
-  conf.debugMem = true
+  conf.debugIf = false
+  conf.debugId = false
+  conf.debugEx = false
+  conf.debugMem = false
   conf.debugWb = true
   conf.test = true
 
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains("0001.bin")) {
+    if(f.getName().contains("li-3.bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
       val rom = new ExternalRom(parser.romData)
