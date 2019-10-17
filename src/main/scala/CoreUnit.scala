@@ -24,6 +24,7 @@ class CoreUnitPort(implicit val conf:CAHPConfig) extends Bundle {
 
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testFinish = if (conf.test) Output(Bool()) else Output(UInt(0.W))
+  val testClockIF = if (conf.test) Output(Bool()) else Output(UInt(0.W))
 }
 
 class CoreUnit(implicit val conf: CAHPConfig) extends Module {
@@ -36,21 +37,18 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   val exUnit = Module(new ExUnit)
   val memUnit = Module(new MemUnit)
 
+  val rom = Module(new ExternalTestRom)
+  io.romAddr := DontCare
+  rom.io.romAddress := ifUnit.io.out.romAddress
 
   ifUnit.io.enable := st.io.clockIF
-  ifUnit.io.in.jump := false.B
-  ifUnit.io.in.jumpAddress := DontCare
-  ifUnit.io.in.romData := io.romInst
-  io.romAddr := ifUnit.io.out.romAddress
+  ifUnit.io.in.jump := exUnit.io.out.jump
+  ifUnit.io.in.jumpAddress := exUnit.io.out.jumpAddress
+  ifUnit.io.in.romData := rom.io.romData
 
-  io.memA.address := DontCare
-  io.memA.in := DontCare
-  io.memA.writeEnable := DontCare
-  io.memB.address := DontCare
-  io.memB.in := DontCare
-  io.memB.writeEnable := DontCare
-  io.testFinish := DontCare
   io.testRegx8 := idwbUnit.io.testRegx8
+  io.testFinish := DontCare
+  io.testClockIF := st.io.clockIF
 
 
   idwbUnit.io.idIn.inst := ifUnit.io.out.instOut
@@ -76,6 +74,4 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   idwbUnit.io.wbIn := idwbUnit.io.wbOut
   idwbUnit.io.wbIn.regWriteData := memUnit.io.out.out
 
-  //io.testRegx8 := idwbUnit.io.testRegx8
-  //io.testFinish := idwbUnit.io.testFinish
 }

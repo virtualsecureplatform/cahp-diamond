@@ -18,6 +18,7 @@ case class CAHPConfig() {
   var debugWb = true
 
   var test = false
+  var testRom:Seq[BigInt] = Seq(BigInt(0))
 
   //IF Unit
   val romAddrWidth = 9

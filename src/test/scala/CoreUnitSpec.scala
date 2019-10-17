@@ -30,10 +30,11 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains("li-3.bin")) {
+    if(f.getName().contains("bleu-3.bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
       val rom = new ExternalRom(parser.romData)
+      conf.testRom = parser.romSeq
 
       val memA = new ExternalTestRam(parser.memAData)
       val memB = new ExternalTestRam(parser.memBData)
@@ -43,20 +44,19 @@ class CoreUnitSpec() extends ChiselFlatSpec {
       assert(Driver(() => new CoreUnit) {
         c =>
           new PeekPokeTester(c) {
+            poke(c.io.romInst, rom.readInst(0))
             for (i <- 0 until cycle) {
               if((peek(c.io.testFinish) == 1)&&(!cycleFinishFlag)){
                 cycle = i+5
                 printf("CYCLE:%d\n", cycle)
                 cycleFinishFlag = true
               }
-              val addr = peek(c.io.romAddr).toInt
               val memAAddr = peek(c.io.memA.address).toInt
               val memAData = peek(c.io.memA.in).toInt
               val memAWrite = (peek(c.io.memA.writeEnable) != 0)
               val memBAddr = peek(c.io.memB.address).toInt
               val memBData = peek(c.io.memB.in).toInt
               val memBWrite = (peek(c.io.memB.writeEnable) != 0)
-              poke(c.io.romInst, rom.readInst(addr))
               step(1)
               memA.step(memAWrite, memAAddr, memAData)
               memB.step(memBWrite, memBAddr, memBData)

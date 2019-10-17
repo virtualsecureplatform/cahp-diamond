@@ -138,18 +138,14 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
     val immType = Wire(UInt(9.W))
     immType := DontCare
     when(inst(0) === 1.U) {
-      when(inst(2, 1) === InstructionCategory.InstM){
-        when(inst(5, 3) === 2.U || inst(5, 3) === 3.U){
-          immType := ImmType.SImm11
-        }.otherwise{
-          immType := ImmType.SImm10
-        }
-      }.elsewhen(inst(2, 1) === InstructionCategory.InstI){
+      when(inst(2, 1) === InstructionCategory.InstI){
         when(inst(7) === 1.U){
           immType := ImmType.SImm8
         }.otherwise{
           immType := ImmType.UImm8
         }
+      }.otherwise{
+        immType := ImmType.SImm10
       }
     }.otherwise{
       when(inst(2, 1) === InstructionCategory.InstM){
@@ -360,7 +356,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
 
   when(io.longInst) {
     io.rs1 := io.in.inst(15, 12)
-    when(io.in.inst(2, 1) === InstructionCategory.InstM){
+    when(io.in.inst(2, 1) === InstructionCategory.InstM || io.in.inst(2, 1) === InstructionCategory.InstJ){
       io.rs2 := io.in.inst(11, 8)
     }.otherwise{
       io.rs2 := io.in.inst(19,16)

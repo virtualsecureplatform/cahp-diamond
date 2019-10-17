@@ -64,6 +64,8 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   val flagSign = Wire(Bool())
   val flagZero = Wire(Bool())
   val resCarry = Wire(UInt(17.W))
+  val inB_sub = Wire(UInt(16.W))
+  inB_sub := (~pExReg.inB).asUInt()+1.U
 
   flagCarry := DontCare
   flagOverflow := DontCare
@@ -78,8 +80,6 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   when(pExReg.opcode === ALUOpcode.ADD) {
     io.out.res := pExReg.inA + pExReg.inB
   }.elsewhen(pExReg.opcode === ALUOpcode.SUB) {
-    val inB_sub = Wire(UInt(16.W))
-    inB_sub := (~pExReg.inB).asUInt()+1.U
     resCarry := pExReg.inA +& inB_sub
     io.out.res := resCarry(15, 0)
   }.elsewhen(pExReg.opcode === ALUOpcode.AND) {
@@ -104,7 +104,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   flagCarry := ~resCarry(16)
   flagSign := io.out.res(15)
   flagZero := (io.out.res === 0.U(16.W))
-  flagOverflow := check_overflow(pExReg.inA, pExReg.inB, io.out.res)
+  flagOverflow := check_overflow(pExReg.inA, inB_sub, io.out.res)
   io.out.jump := false.B
   when(io.in.pcOpcode === 1.U){
     io.out.jump := flagZero
@@ -121,6 +121,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   }.elsewhen(io.in.pcOpcode === 7.U){
     io.out.jump := (flagSign != flagOverflow)||flagZero
   }
+  //printf("[EX] FLAGS Carry:%d Sign:%d Zero:%d OverFlow:%d\n", flagCarry, flagSign, flagZero, flagOverflow)
 
   when(conf.debugEx.B) {
     printf("[EX] opcode:0x%x\n", pExReg.opcode)

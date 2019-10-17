@@ -12,6 +12,7 @@ class TestBinParser(filePath: String) {
 
 
   lines.foreach(s => parseLine(s))
+  val romSeq = (romData map (x => x._2)).toSeq
 
   def parseLine(line:String){
     val tokens = line.split(" ", 0)
