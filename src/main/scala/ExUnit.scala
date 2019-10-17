@@ -31,6 +31,7 @@ class ExUnitIn extends Bundle {
   val pcOpcode = Input(UInt(3.W))
   val pc = Input(UInt(16.W))
   val pcImm = Input(UInt(16.W))
+  val pcAdd = Input(Bool())
 }
 
 class ExUnitOut(implicit val conf:CAHPConfig) extends Bundle {
@@ -100,7 +101,12 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     io.out.res := DontCare
   }
 
-  io.out.jumpAddress := io.in.pc+io.in.pcImm
+  when(io.in.pcAdd) {
+    io.out.jumpAddress := io.in.pc + io.in.pcImm
+  }.otherwise{
+    io.out.jumpAddress := io.in.pcImm
+  }
+
   flagCarry := ~resCarry(16)
   flagSign := io.out.res(15)
   flagZero := (io.out.res === 0.U(16.W))

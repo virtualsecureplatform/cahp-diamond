@@ -345,6 +345,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
   io.exOut.pcOpcode := getPCOpcode(io.in.inst)
   io.exOut.pcImm := DontCare
   io.exOut.pc := DontCare
+  io.exOut.pcAdd := DontCare
   io.memOut.memRead := getMemRead(io.in.inst)
   io.memOut.memWrite := getMemWrite(io.in.inst)
   io.memOut.byteEnable := getMemByte(io.in.inst)
@@ -403,8 +404,10 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   io.exOut.pc := io.idIn.pc
   when(decoder.io.pcImmSel){
     io.exOut.pcImm := decoder.io.pcImm
+    io.exOut.pcAdd := true.B
   }.otherwise{
     io.exOut.pcImm := mainRegister.io.rs1Data
+    io.exOut.pcAdd := false.B
   }
   when(!decoder.io.inASel){
     io.exOut.inA := mainRegister.io.rs1Data
@@ -416,7 +419,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   }.otherwise{
     //LUI
     when(pIdReg.inst(5, 0) === "b000100".U(6.W)){
-      io.exOut.inB := Cat(decoder.io.imm(5, 0), mainRegister.io.rs2Data(9, 0))
+      io.exOut.inB := Cat(decoder.io.imm(5, 0), 0.U(10.W))
     }.otherwise{
       io.exOut.inB := decoder.io.imm
     }

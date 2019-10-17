@@ -30,10 +30,9 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains("bleu-3.bin")) {
+    if(f.getName().contains("jalr-1.bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
-      val rom = new ExternalRom(parser.romData)
       conf.testRom = parser.romSeq
 
       val memA = new ExternalTestRam(parser.memAData)
@@ -44,7 +43,6 @@ class CoreUnitSpec() extends ChiselFlatSpec {
       assert(Driver(() => new CoreUnit) {
         c =>
           new PeekPokeTester(c) {
-            poke(c.io.romInst, rom.readInst(0))
             for (i <- 0 until cycle) {
               if((peek(c.io.testFinish) == 1)&&(!cycleFinishFlag)){
                 cycle = i+5
