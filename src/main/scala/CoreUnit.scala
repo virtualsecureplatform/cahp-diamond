@@ -56,22 +56,25 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   idwbUnit.io.idEnable := st.io.clockID
   idwbUnit.io.wbEnable := st.io.clockWB
 
-  exUnit.io.enable := st.io.clockEX
   exUnit.io.in := idwbUnit.io.exOut
+  exUnit.io.memIn := idwbUnit.io.memOut
+  exUnit.io.wbIn := idwbUnit.io.wbOut
+  exUnit.io.enable := st.io.clockEX
 
   memUnit.io.enable := st.io.clockMEM
-  memUnit.io.in := idwbUnit.io.memOut
-  memUnit.io.in.address := exUnit.io.out.res
+  memUnit.io.in := exUnit.io.memOut
+  memUnit.io.wbIn := exUnit.io.wbOut
+
   io.memA.address := memUnit.io.memA.address
   io.memA.in := memUnit.io.memA.in
   io.memA.writeEnable := memUnit.io.memA.writeEnable
-  memUnit.io.memA.out := io.memA.out
   io.memB.address := memUnit.io.memB.address
   io.memB.in := memUnit.io.memB.in
   io.memB.writeEnable := memUnit.io.memB.writeEnable
+
+  memUnit.io.memA.out := io.memA.out
   memUnit.io.memB.out := io.memB.out
 
-  idwbUnit.io.wbIn := idwbUnit.io.wbOut
-  idwbUnit.io.wbIn.regWriteData := memUnit.io.out.out
+  idwbUnit.io.wbIn := memUnit.io.wbOut
 
 }

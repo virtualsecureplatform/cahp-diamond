@@ -19,9 +19,14 @@ import chisel3.util.{BitPat, Cat}
 
 class ExUnitPort(implicit val conf:CAHPConfig) extends Bundle {
   val in = new ExUnitIn
-  val enable = Input(Bool())
+  val memIn = new MemUnitIn
+  val wbIn = new WbUnitIn
 
   val out = new ExUnitOut
+  val memOut = Flipped(new MemUnitIn)
+  val wbOut = Flipped(new WbUnitIn)
+
+  val enable = Input(Bool())
 }
 class ExUnitIn extends Bundle {
   val inA = Input(UInt(16.W))
@@ -43,6 +48,8 @@ class ExUnitOut(implicit val conf:CAHPConfig) extends Bundle {
 class ExUnit(implicit val conf:CAHPConfig) extends Module {
   val io = IO(new ExUnitPort)
   val pExReg = RegInit(0.U.asTypeOf(new ExUnitIn))
+  val pMemReg = RegInit(0.U.asTypeOf(new MemUnitIn))
+  val pWbReg = RegInit(0.U.asTypeOf(new WbUnitIn))
 
   def check_overflow(s1: UInt, s2: UInt, r: UInt) = {
     val s1_sign = Wire(UInt(1.W))
@@ -76,7 +83,12 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
 
   when(io.enable) {
     pExReg := io.in
+    pMemReg := io.memIn
+    pWbReg := io.wbIn
   }
+  io.memOut := pMemReg
+  io.memOut.address := io.out.res
+  io.wbOut := pWbReg
 
   when(pExReg.opcode === ALUOpcode.ADD) {
     io.out.res := pExReg.inA + pExReg.inB

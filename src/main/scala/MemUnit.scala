@@ -24,25 +24,31 @@ class MemPort extends Bundle {
   val out = Output(UInt(8.W))
 }
 
-class MemUnitIn extends Bundle {
+class MemUnitIn (implicit val conf:CAHPConfig) extends Bundle {
   val in =  Input(UInt(16.W))
   val address = Input(UInt(16.W))
   val memRead = Input(Bool())
   val memWrite = Input(Bool())
   val byteEnable = Input(Bool())
   val signExt = Input(Bool())
+
 }
 
-class MemUnitOut extends Bundle {
+class MemUnitOut (implicit val conf:CAHPConfig) extends Bundle {
   val out = Output(UInt(16.W))
   val fwdData = Output(UInt(16.W))
+
 }
 
-class MemUnitPort extends Bundle {
+class MemUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val in = new MemUnitIn
   val out = new MemUnitOut
+  val wbIn = new WbUnitIn
+
   val memA = Flipped(new MemPort)
   val memB = Flipped(new MemPort)
+  val wbOut = Flipped(new WbUnitIn)
+
   val enable = Input(Bool())
 }
 
@@ -87,11 +93,16 @@ class MemUnit(implicit val conf:CAHPConfig) extends Module {
   val io = IO(new MemUnitPort)
 
   val pMemReg = RegInit(0.U.asTypeOf(new MemUnitIn))
+  val pWbReg = RegInit(0.U.asTypeOf(new WbUnitIn))
 
   when(io.enable){
     pMemReg := io.in
+    pWbReg := io.wbIn
   }
+
   io.out.fwdData := io.out.out
+  io.wbOut := pWbReg
+  io.wbOut.regWriteData := io.out.out
 
   def sign_ext_8bit(v:UInt) : UInt = {
     val res = Wire(UInt(16.W))
