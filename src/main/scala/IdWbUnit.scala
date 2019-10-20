@@ -139,11 +139,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
     immType := DontCare
     when(inst(0) === 1.U) {
       when(inst(2, 1) === InstructionCategory.InstI){
-        when(inst(7) === 1.U){
           immType := ImmType.SImm8
-        }.otherwise{
-          immType := ImmType.UImm8
-        }
       }.otherwise{
         immType := ImmType.SImm10
       }
@@ -151,10 +147,8 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
       when(inst(2, 1) === InstructionCategory.InstM){
         when(inst(5, 4) === 1.U){
           immType := ImmType.UImm7
-        }.elsewhen(inst(5) === 1.U){
-          immType := ImmType.SImm6
         }.otherwise{
-          immType := ImmType.UImm6
+          immType := ImmType.SImm6
         }
       }.elsewhen(inst(2, 1) === InstructionCategory.InstI){
         when(inst(5, 4) === 0.U){
