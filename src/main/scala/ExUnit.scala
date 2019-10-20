@@ -94,7 +94,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   }.elsewhen(pExReg.opcode === ALUOpcode.LSR) {
     io.out.res := (pExReg.inA >> pExReg.inB).asUInt()
   }.elsewhen(pExReg.opcode === ALUOpcode.ASR) {
-    io.out.res := (pExReg.inA.asSInt() >> pExReg.inB).asUInt()
+    io.out.res := ((pExReg.inA.asSInt()) >> pExReg.inB).asUInt()
   }.elsewhen(pExReg.opcode === ALUOpcode.MOV) {
     io.out.res := pExReg.inB
   }.otherwise {
