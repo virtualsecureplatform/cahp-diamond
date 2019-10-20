@@ -139,13 +139,13 @@ class MemUnit(implicit val conf:CAHPConfig) extends Module {
         when(pMemReg.signExt){
           io.out.out := sign_ext_8bit(io.memA.out)
         }.otherwise{
-          io.out.out := io.memA.out
+          io.out.out := Cat(0.U(8.W), io.memA.out)
         }
       }.otherwise{
         when(pMemReg.signExt){
           io.out.out := sign_ext_8bit(io.memB.out)
         }.otherwise{
-          io.out.out := io.memB.out
+          io.out.out := Cat(0.U(8.W), io.memB.out)
         }
       }
     }.otherwise{

@@ -24,13 +24,13 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   conf.debugId = false
   conf.debugEx = false
   conf.debugMem = false
-  conf.debugWb = true
+  conf.debugWb = false
   conf.test = true
 
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains("xor-1.bin")) {
+    if(f.getName().contains(".bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
       conf.testRom = parser.romSeq

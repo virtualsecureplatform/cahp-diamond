@@ -56,6 +56,7 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   val stole = Wire(Bool())
   //val romAddr = RegInit(0.U((conf.romAddrWidth-2).W))
   val romAddr = Wire(UInt((conf.romAddrWidth-2).W))
+  val cachedRomAddr = RegInit(0.U(conf.romAddrWidth.W))
 
   val cacheSt = RegInit(romCacheStateMachine.NotLoaded)
 
@@ -79,9 +80,14 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
 
   // **** Sequential Circuit ****
   when(io.enable) {
-    romCache := io.in.romData
     romCacheState := romCacheState
     cacheSt := cacheSt
+    when(romCache(0) === 0.U&&pc.io.pcOut(1,0) === 0.U&&cacheSt === romCacheStateMachine.Loaded){
+      romCache := romCache
+    }.otherwise{
+      cachedRomAddr := io.out.romAddress
+      romCache := io.in.romData
+    }
     when(io.in.jump){
       romCacheState := romCacheStateType.romCacheMiss
       cacheSt := romCacheStateMachine.NotLoaded
@@ -169,6 +175,7 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
     printf("[IF] RomAddress:%d\n", io.out.romAddress)
     printf("[IF] RomData:0x%x\n", io.in.romData)
     printf("[IF] RomCache:0x%x\n", romCache)
+    printf("[IF] CachedRomAddr:0x%x\n", cachedRomAddr)
   }
 }
 
