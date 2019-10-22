@@ -89,6 +89,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   io.memOut := pMemReg
   io.memOut.address := io.out.res
   io.wbOut := pWbReg
+  io.wbOut.regWriteData := io.out.res
 
   when(pExReg.opcode === ALUOpcode.ADD) {
     io.out.res := pExReg.inA + pExReg.inB

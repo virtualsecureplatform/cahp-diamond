@@ -31,6 +31,8 @@ class WbUnitIn(implicit val conf:CAHPConfig) extends Bundle {
 class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val idIn = new IdUnitIn
   val wbIn = new WbUnitIn
+  val exWbIn = new WbUnitIn
+  val memWbIn = new WbUnitIn
   val idEnable = Input(Bool())
   val wbEnable = Input(Bool())
 
@@ -96,6 +98,7 @@ object PCOpcode {
   def SImm10:UInt = "b001".U(3.W)
   def SImm11:UInt = "b010".U(3.W)
 }
+
 class Decoder(implicit val conf:CAHPConfig) extends Module {
 
   def genImm(inst:UInt, immType:UInt):UInt = {
@@ -392,20 +395,41 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
 
   io.exOut := decoder.io.exOut
   io.exOut.pc := pIdReg.pc
+
+  val rs1Data = Wire(UInt(16.W))
+  val rs2Data = Wire(UInt(16.W))
+  when(decoder.io.rs1 === io.exWbIn.regWrite && io.exWbIn.regWriteEnable){
+    printf("FORWARD RS1\n")
+    rs1Data := io.exWbIn.regWriteData
+  }.elsewhen(decoder.io.rs1 === io.memWbIn.regWrite && io.memWbIn.regWriteEnable){
+    rs1Data := io.memWbIn.regWriteData
+  }.otherwise{
+    rs1Data := mainRegister.io.rs1Data
+  }
+
+  when(decoder.io.rs2 === io.exWbIn.regWrite && io.exWbIn.regWriteEnable){
+    printf("FORWARD RS2\n")
+    rs2Data := io.exWbIn.regWriteData
+  }.elsewhen(decoder.io.rs2 === io.memWbIn.regWrite && io.memWbIn.regWriteEnable){
+    rs2Data := io.memWbIn.regWriteData
+  }.otherwise{
+    rs2Data := mainRegister.io.rs2Data
+  }
+
   when(decoder.io.pcImmSel){
     io.exOut.pcImm := decoder.io.pcImm
     io.exOut.pcAdd := true.B
   }.otherwise{
-    io.exOut.pcImm := mainRegister.io.rs1Data
+    io.exOut.pcImm := rs1Data
     io.exOut.pcAdd := false.B
   }
   when(!decoder.io.inASel){
-    io.exOut.inA := mainRegister.io.rs1Data
+    io.exOut.inA := rs1Data
   }.otherwise{
     io.exOut.inA := pIdReg.pc
   }
   when(!decoder.io.inBSel){
-    io.exOut.inB := mainRegister.io.rs2Data
+    io.exOut.inB := rs2Data
   }.otherwise{
     //LUI
     when(pIdReg.inst(5, 0) === "b000100".U(6.W)){
@@ -416,7 +440,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   }
 
   io.memOut := decoder.io.memOut
-  io.memOut.in := mainRegister.io.rs2Data
+  io.memOut.in := rs2Data
 
   io.wbOut := decoder.io.wbOut
 

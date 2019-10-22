@@ -30,7 +30,7 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains("pipeline-1.bin")) {
+    if(f.getName().contains("pipeline-3.bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
       println(parser.romSeq)

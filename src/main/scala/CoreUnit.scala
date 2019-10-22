@@ -53,8 +53,11 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
 
   idwbUnit.io.idIn.inst := ifUnit.io.out.instOut
   idwbUnit.io.idIn.pc := ifUnit.io.out.pcAddress
+  idwbUnit.io.exWbIn := exUnit.io.wbOut
+  idwbUnit.io.memWbIn := memUnit.io.wbOut
   idwbUnit.io.idEnable := st.io.clockID
   idwbUnit.io.wbEnable := st.io.clockWB
+
 
   exUnit.io.in     := idwbUnit.io.exOut
   exUnit.io.memIn  := idwbUnit.io.memOut
