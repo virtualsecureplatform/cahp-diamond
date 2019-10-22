@@ -146,6 +146,9 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     printf("[EX] inA:0x%x\n", pExReg.inA)
     printf("[EX] inB:0x%x\n", pExReg.inB)
     printf("[EX] Res:0x%x\n", io.out.res)
+    printf("[EX] PC Address:0x%x\n", io.in.pc)
+    printf("[EX] Jump:%d\n", io.out.jump)
+    printf("[EX] JumpAddress:0x%x\n", io.out.jumpAddress)
   }
 }
 object ALUOpcode {

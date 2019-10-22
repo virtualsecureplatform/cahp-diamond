@@ -28,9 +28,16 @@ class StateMachine extends Module {
   val state = RegInit(2.U(5.W))
   state := Cat(state, state(4))
 
+  io.clockIF := true.B
+  io.clockID := true.B
+  io.clockEX := true.B
+  io.clockMEM := true.B
+  io.clockWB := true.B
+  /*
   io.clockIF := state(0)
   io.clockID := state(1)
   io.clockEX := state(2)
   io.clockMEM := state(3)
   io.clockWB := state(4)
+   */
 }

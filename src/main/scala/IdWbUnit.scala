@@ -391,7 +391,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   mainRegister.io.writeEnable := io.wbIn.regWriteEnable&&io.wbEnable
 
   io.exOut := decoder.io.exOut
-  io.exOut.pc := io.idIn.pc
+  io.exOut.pc := pIdReg.pc
   when(decoder.io.pcImmSel){
     io.exOut.pcImm := decoder.io.pcImm
     io.exOut.pcAdd := true.B

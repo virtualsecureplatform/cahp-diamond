@@ -172,6 +172,7 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
     printf("[IF] Stole:%d\n", io.out.stole)
     printf("[IF] CacheState:%d\n", cacheSt)
     printf("[IF] jump:%d\n", io.in.jump)
+    printf("[IF] JumpAddress:0x%x\n", io.in.jumpAddress)
     printf("[IF] RomAddress:%d\n", io.out.romAddress)
     printf("[IF] RomData:0x%x\n", io.in.romData)
     printf("[IF] RomCache:0x%x\n", romCache)
