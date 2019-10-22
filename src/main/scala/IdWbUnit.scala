@@ -157,11 +157,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
           immType := ImmType.UImm6
         }
       }.elsewhen(inst(2, 1) === InstructionCategory.InstJ){
-        when(inst(3) === 1.U){
-          immType := ImmType.Imm4
-        }.otherwise{
-          immType := ImmType.Imm2
-        }
+        immType := ImmType.Imm2
       }
     }
     immType
@@ -259,8 +255,8 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
       when(inst(0) === 1.U){
         //LB, LBU, SB
         when(inst(5, 3) === 4.U(3.W) ||
-             inst(5, 3) === 0.U(3.W) ||
-             inst(5, 3) === 1.U(3.W)){
+          inst(5, 3) === 0.U(3.W) ||
+          inst(5, 3) === 1.U(3.W)){
           byteEnable := true.B
         }
       }

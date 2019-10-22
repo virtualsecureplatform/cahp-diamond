@@ -82,7 +82,7 @@ class IfUnit(implicit val conf: CAHPConfig) extends Module {
   when(io.enable) {
     romCacheState := romCacheState
     cacheSt := cacheSt
-    when(romCache(0) === 0.U&&pc.io.pcOut(1,0) === 0.U&&cacheSt === romCacheStateMachine.Loaded){
+    when(((romCache(0) === 0.U&&pc.io.pcOut(1,0) === 0.U)||(romCache(8) === 0.U&&pc.io.pcOut(1,0) === 1.U)||(romCache(0) === 1.U&&pc.io.pcOut(1,0) === 0.U))&&cacheSt === romCacheStateMachine.Loaded){
       romCache := romCache
     }.otherwise{
       cachedRomAddr := io.out.romAddress
