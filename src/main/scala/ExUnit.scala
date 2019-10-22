@@ -21,12 +21,12 @@ class ExUnitPort(implicit val conf:CAHPConfig) extends Bundle {
   val in = new ExUnitIn
   val memIn = new MemUnitIn
   val wbIn = new WbUnitIn
+  val enable = Input(Bool())
+  val flush = Input(Bool())
 
   val out = new ExUnitOut
   val memOut = Flipped(new MemUnitIn)
   val wbOut = Flipped(new WbUnitIn)
-
-  val enable = Input(Bool())
 }
 class ExUnitIn extends Bundle {
   val inA = Input(UInt(16.W))
@@ -85,7 +85,13 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     pExReg := io.in
     pMemReg := io.memIn
     pWbReg := io.wbIn
+    when(io.flush){
+      pMemReg.memWrite := false.B
+      pWbReg.regWriteEnable := false.B
+      pExReg.pcOpcode := 0.U
+    }
   }
+
   io.memOut := pMemReg
   io.memOut.address := io.out.res
   io.wbOut := pWbReg
@@ -114,10 +120,10 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     io.out.res := DontCare
   }
 
-  when(io.in.pcAdd) {
-    io.out.jumpAddress := io.in.pc + io.in.pcImm
+  when(pExReg.pcAdd) {
+    io.out.jumpAddress := pExReg.pc + pExReg.pcImm
   }.otherwise{
-    io.out.jumpAddress := io.in.pcImm
+    io.out.jumpAddress := pExReg.pcImm
   }
 
   flagCarry := ~resCarry(16)
@@ -125,19 +131,19 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
   flagZero := (io.out.res === 0.U(16.W))
   flagOverflow := check_overflow(pExReg.inA, inB_sub, io.out.res)
   io.out.jump := false.B
-  when(io.in.pcOpcode === 1.U){
+  when(pExReg.pcOpcode === 1.U){
     io.out.jump := flagZero
-  }.elsewhen(io.in.pcOpcode === 2.U){
+  }.elsewhen(pExReg.pcOpcode === 2.U){
     io.out.jump := flagCarry
-  }.elsewhen(io.in.pcOpcode === 3.U){
+  }.elsewhen(pExReg.pcOpcode === 3.U){
     io.out.jump := flagCarry||flagZero
-  }.elsewhen(io.in.pcOpcode === 4.U){
+  }.elsewhen(pExReg.pcOpcode === 4.U){
     io.out.jump := true.B
-  }.elsewhen(io.in.pcOpcode === 5.U){
+  }.elsewhen(pExReg.pcOpcode === 5.U){
     io.out.jump := !flagZero
-  }.elsewhen(io.in.pcOpcode === 6.U){
+  }.elsewhen(pExReg.pcOpcode === 6.U){
     io.out.jump := (flagSign != flagOverflow)
-  }.elsewhen(io.in.pcOpcode === 7.U){
+  }.elsewhen(pExReg.pcOpcode === 7.U){
     io.out.jump := (flagSign != flagOverflow)||flagZero
   }
   //printf("[EX] FLAGS Carry:%d Sign:%d Zero:%d OverFlow:%d\n", flagCarry, flagSign, flagZero, flagOverflow)
@@ -147,7 +153,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     printf("[EX] inA:0x%x\n", pExReg.inA)
     printf("[EX] inB:0x%x\n", pExReg.inB)
     printf("[EX] Res:0x%x\n", io.out.res)
-    printf("[EX] PC Address:0x%x\n", io.in.pc)
+    printf("[EX] PC Address:0x%x\n", pExReg.pc)
     printf("[EX] Jump:%d\n", io.out.jump)
     printf("[EX] JumpAddress:0x%x\n", io.out.jumpAddress)
   }

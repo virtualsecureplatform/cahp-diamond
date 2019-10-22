@@ -31,14 +31,17 @@ class WbUnitIn(implicit val conf:CAHPConfig) extends Bundle {
 class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val idIn = new IdUnitIn
   val wbIn = new WbUnitIn
+  val exMemIn = new MemUnitIn
   val exWbIn = new WbUnitIn
   val memWbIn = new WbUnitIn
   val idEnable = Input(Bool())
   val wbEnable = Input(Bool())
+  val flush = Input(Bool())
 
   val exOut = Flipped(new ExUnitIn)
   val memOut = Flipped(new MemUnitIn)
   val wbOut = Flipped(new WbUnitIn)
+  val stole = Output(Bool())
 
   /*
   val debugRs = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
@@ -382,7 +385,13 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   val mainRegister = Module(new MainRegister())
   val pIdReg = RegInit(0.U.asTypeOf(new IdUnitIn))
 
-  when(io.idEnable){
+  val stole = Wire(Bool())
+  stole := false.B
+
+  when(io.idEnable&&io.flush){
+    pIdReg := io.idIn
+    pIdReg.inst := 0.U(16.W)
+  }.elsewhen(io.idEnable&&(!stole)){
     pIdReg := io.idIn
   }
   decoder.io.in := pIdReg
@@ -399,22 +408,29 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   val rs1Data = Wire(UInt(16.W))
   val rs2Data = Wire(UInt(16.W))
   when(decoder.io.rs1 === io.exWbIn.regWrite && io.exWbIn.regWriteEnable){
-    printf("FORWARD RS1\n")
+    //printf("RS1 FORWARD FROM EX\n");
     rs1Data := io.exWbIn.regWriteData
   }.elsewhen(decoder.io.rs1 === io.memWbIn.regWrite && io.memWbIn.regWriteEnable){
+    //printf("RS1 FORWARD FROM MEM\n");
     rs1Data := io.memWbIn.regWriteData
   }.otherwise{
     rs1Data := mainRegister.io.rs1Data
   }
 
   when(decoder.io.rs2 === io.exWbIn.regWrite && io.exWbIn.regWriteEnable){
-    printf("FORWARD RS2\n")
+    //printf("RS2 FORWARD FROM EX\n");
     rs2Data := io.exWbIn.regWriteData
   }.elsewhen(decoder.io.rs2 === io.memWbIn.regWrite && io.memWbIn.regWriteEnable){
+    //printf("RS2 FORWARD FROM MEM\n");
     rs2Data := io.memWbIn.regWriteData
   }.otherwise{
     rs2Data := mainRegister.io.rs2Data
   }
+
+  when((decoder.io.rs2 === io.exWbIn.regWrite||decoder.io.rs1 === io.exWbIn.regWrite) && io.exWbIn.regWriteEnable) {
+    stole := io.exMemIn.memRead
+  }
+
 
   when(decoder.io.pcImmSel){
     io.exOut.pcImm := decoder.io.pcImm
@@ -441,8 +457,15 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
 
   io.memOut := decoder.io.memOut
   io.memOut.in := rs2Data
-
   io.wbOut := decoder.io.wbOut
+  io.stole := stole
+
+  when(stole){
+    io.memOut.memWrite := false.B
+    io.memOut.memRead := false.B
+    io.wbOut.regWriteEnable := false.B
+    io.exOut.pcOpcode := 0.U
+  }
 
   io.testRegx8 := mainRegister.io.testRegx8
   when(conf.debugId.B){

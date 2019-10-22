@@ -1,4 +1,4 @@
-nop
 li x0, 0x0
 li x1, 0x8
 li x8, 0x2A
+js 0

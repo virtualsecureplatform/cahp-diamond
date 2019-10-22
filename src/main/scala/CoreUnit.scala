@@ -41,7 +41,7 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   io.romAddr := DontCare
   rom.io.romAddress := ifUnit.io.out.romAddress
 
-  ifUnit.io.enable := st.io.clockIF
+  ifUnit.io.enable := st.io.clockIF&&(!idwbUnit.io.stole)
   ifUnit.io.in.jump := exUnit.io.out.jump
   ifUnit.io.in.jumpAddress := exUnit.io.out.jumpAddress
   ifUnit.io.in.romData := rom.io.romData
@@ -54,7 +54,9 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   idwbUnit.io.idIn.inst := ifUnit.io.out.instOut
   idwbUnit.io.idIn.pc := ifUnit.io.out.pcAddress
   idwbUnit.io.exWbIn := exUnit.io.wbOut
+  idwbUnit.io.exMemIn := exUnit.io.memOut
   idwbUnit.io.memWbIn := memUnit.io.wbOut
+  idwbUnit.io.flush := exUnit.io.out.jump
   idwbUnit.io.idEnable := st.io.clockID
   idwbUnit.io.wbEnable := st.io.clockWB
 
@@ -63,6 +65,7 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   exUnit.io.memIn  := idwbUnit.io.memOut
   exUnit.io.wbIn   := idwbUnit.io.wbOut
   exUnit.io.enable := st.io.clockEX
+  exUnit.io.flush  := exUnit.io.out.jump
 
   memUnit.io.enable := st.io.clockMEM
   memUnit.io.in     := exUnit.io.memOut
