@@ -10,9 +10,11 @@ class TestBinParser(filePath: String) {
   var res = 0
   var cycle = 0
 
-
+  var romSeq:Seq[BigInt] = Seq()
   lines.foreach(s => parseLine(s))
-  val romSeq = (romData map (x => x._2)).toSeq
+  for(i <- 0 to romData.size-1){
+    romSeq = romSeq:+romData(i)
+  }
 
   def parseLine(line:String){
     val tokens = line.split(" ", 0)

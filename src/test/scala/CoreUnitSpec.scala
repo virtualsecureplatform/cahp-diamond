@@ -24,15 +24,16 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   conf.debugId = false
   conf.debugEx = false
   conf.debugMem = false
-  conf.debugWb = false
+  conf.debugWb = true
   conf.test = true
 
   val testDir = new File("src/test/binary/")
 
   testDir.listFiles().foreach { f =>
-    if(f.getName().contains(".bin")) {
+    if(f.getName().contains("fib.bin")) {
       println(f.getName())
       val parser = new TestBinParser(f.getAbsolutePath())
+      println(parser.romSeq)
       conf.testRom = parser.romSeq
 
       val memA = new ExternalTestRam(parser.memAData)
