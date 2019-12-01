@@ -16,32 +16,34 @@ limitations under the License.
 
 import chisel3._
 
-class TopUnitPort(implicit val conf:RV16KConfig) extends Bundle {
-  val romInst = Input(UInt(16.W))
-  val romAddr = Output(UInt(9.W))
-
+class TopUnitPort(implicit val conf:CAHPConfig) extends Bundle {
+  val load = if(conf.load) Input(Bool()) else Input(UInt(0.W))
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
 }
 
-class TopUnit(implicit val conf:RV16KConfig) extends Module{
+class TopUnit(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt])(implicit val conf:CAHPConfig) extends Module{
   val io = IO(new TopUnitPort)
-  //val core = Module(new CoreUnit)
-  //val memA = Module(new ExternalRam)
-  //val memB = Module(new ExternalRam)
+  val core = Module(new CoreUnit)
+  val rom = Module(new ExternalTestRom())
+  val memA = Module(new ExternalRam(memAInit))
+  val memB = Module(new ExternalRam(memBInit))
 
-  //core.io.romInst := io.romInst
-  //io.romAddr := core.io.romAddr
+  rom.io.romAddress := core.io.romAddr
+  core.io.romData := rom.io.romData
+  core.io.load := io.load
 
-  /*
+
+  memA.io.load := io.load
   memA.io.address := core.io.memA.address
   memA.io.in := core.io.memA.in
   memA.io.writeEnable := core.io.memA.writeEnable
   core.io.memA.out := memA.io.out
+
+  memB.io.load := io.load
   memB.io.address := core.io.memB.address
   memB.io.in := core.io.memB.in
   memB.io.writeEnable := core.io.memB.writeEnable
   core.io.memB.out := memB.io.out
-  */
 
-  //io.testRegx8 := core.io.testRegx8
+  io.testRegx8 := core.io.testRegx8
 }

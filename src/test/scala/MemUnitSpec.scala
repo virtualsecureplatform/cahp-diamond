@@ -26,7 +26,7 @@ class MemUnitSpec extends ChiselFlatSpec {
   conf.debugEx = false
   conf.debugMem = false
   conf.debugWb = false
-  assert(Driver(() => new MemUnitTest) {
+  assert(Driver(() => new MemUnitTest(Seq(BigInt(0)), Seq(BigInt(0)))) {
     c =>
       new PeekPokeTester(c) {
         poke(c.io.signExt, false)

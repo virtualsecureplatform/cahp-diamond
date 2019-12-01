@@ -19,32 +19,27 @@ import java.io.File
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class TopUnitSpec() extends ChiselFlatSpec {
-  implicit val conf = RV16KConfig()
+  implicit val conf = CAHPConfig()
   conf.debugIf = false
-  conf.debugId = false
+  conf.debugId = true
   conf.debugEx = false
   conf.debugMem = false
   conf.debugWb = false
   conf.test = true
 
-  val testDir = new File("src/test/binary/")
 
-  testDir.listFiles().foreach { f =>
-    if(f.getName().contains("fib.bin")) {
-      val parser = new TestBinParser(f.getAbsolutePath())
-      val rom = new ExternalRom(parser.romData)
-      assert(Driver(() => new TopUnit) {
-        c =>
-          new PeekPokeTester(c) {
-            for (i <- 0 until parser.cycle) {
-              val addr = peek(c.io.romAddr).toInt
-              poke(c.io.romInst, rom.readInst(addr))
-              step(1)
-            }
-            expect(c.io.testRegx8, parser.res)
-          }
-      })
-    }
-  }
+  val parser = new TestBinParser("src/test/binary/fib.bin")
+  conf.testRom = parser.romSeq
+  println(parser.romSeq)
+  assert(Driver(() => new YosysTest2(parser.memASeq, parser.memBSeq)) {
+    c =>
+      new PeekPokeTester(c) {
+        for (i <- 0 until 60) {
+          step(1)
+        }
+        expect(c.io.testRegx8, 55)
+      }
+
+  })
 }
 

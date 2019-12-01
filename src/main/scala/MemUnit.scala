@@ -17,11 +17,14 @@ limitations under the License.
 import chisel3._
 import chisel3.util.Cat
 
-class MemPort extends Bundle {
+class MemPort(val conf:CAHPConfig) extends Bundle {
   val in = Input(UInt(8.W))
   val address = Input(UInt(16.W))
   val writeEnable = Input(Bool())
   val out = Output(UInt(8.W))
+  val load = if(conf.load) Input(Bool()) else Input(UInt(0.W))
+
+  override def cloneType: this.type = new MemPort(conf).asInstanceOf[this.type]
 }
 
 class MemUnitIn (implicit val conf:CAHPConfig) extends Bundle {
@@ -31,7 +34,6 @@ class MemUnitIn (implicit val conf:CAHPConfig) extends Bundle {
   val memWrite = Input(Bool())
   val byteEnable = Input(Bool())
   val signExt = Input(Bool())
-
 }
 
 class MemUnitOut (implicit val conf:CAHPConfig) extends Bundle {
@@ -45,8 +47,8 @@ class MemUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val out = new MemUnitOut
   val wbIn = new WbUnitIn
 
-  val memA = Flipped(new MemPort)
-  val memB = Flipped(new MemPort)
+  val memA = Flipped(new MemPort(conf))
+  val memB = Flipped(new MemPort(conf))
   val wbOut = Flipped(new WbUnitIn)
 
   val enable = Input(Bool())
@@ -64,11 +66,11 @@ class MemUnitTestPort extends Bundle{
 
   val out = Output(UInt(16.W))
 }
-class MemUnitTest(implicit val conf:CAHPConfig) extends Module {
+class MemUnitTest(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt])(implicit val conf:CAHPConfig) extends Module {
   val io = IO(new MemUnitTestPort)
   val unit = Module(new MemUnit)
-  val memA = Module(new ExternalRam)
-  val memB = Module(new ExternalRam)
+  val memA = Module(new ExternalRam(memAInit))
+  val memB = Module(new ExternalRam(memBInit))
 
 
   unit.io.in.in := io.in
@@ -81,10 +83,12 @@ class MemUnitTest(implicit val conf:CAHPConfig) extends Module {
   memA.io.address := unit.io.memA.address
   memA.io.in := unit.io.memA.in
   memA.io.writeEnable := unit.io.memA.writeEnable
+  memA.io.load := false.B
   unit.io.memA.out := memA.io.out
   memB.io.address := unit.io.memB.address
   memB.io.in := unit.io.memB.in
   memB.io.writeEnable := unit.io.memB.writeEnable
+  memB.io.load := false.B
   unit.io.memB.out := memB.io.out
   io.out := unit.io.out.out
 }
@@ -125,6 +129,8 @@ class MemUnit(implicit val conf:CAHPConfig) extends Module {
   io.memB.in := data_lower
   io.memA.writeEnable := false.B
   io.memB.writeEnable := false.B
+  io.memA.load := DontCare
+  io.memB.load := DontCare
 
   when(io.in.byteEnable){
     when(io.in.memWrite){

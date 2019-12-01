@@ -24,8 +24,9 @@ class CoreUnitSpec() extends ChiselFlatSpec {
   conf.debugId = false
   conf.debugEx = false
   conf.debugMem = false
-  conf.debugWb = true
+  conf.debugWb = false
   conf.test = true
+  conf.load = true
 
   val testDir = new File("src/test/binary/")
 
@@ -36,31 +37,18 @@ class CoreUnitSpec() extends ChiselFlatSpec {
       println(parser.romSeq)
       conf.testRom = parser.romSeq
 
-      val memA = new ExternalTestRam(parser.memAData)
-      val memB = new ExternalTestRam(parser.memBData)
-
-      var cycle = parser.cycle
+      val cycle = parser.cycle
       var cycleFinishFlag = false
-      assert(Driver(() => new CoreUnit) {
+      assert(Driver(() => new TopUnit(parser.memASeq, parser.memBSeq)) {
         c =>
           new PeekPokeTester(c) {
-            for (i <- 0 until cycle) {
-              if((peek(c.io.testFinish) == 1)&&(!cycleFinishFlag)){
-                cycle = i+5
-                printf("CYCLE:%d\n", cycle)
-                cycleFinishFlag = true
-              }
-              val memAAddr = peek(c.io.memA.address).toInt
-              val memAData = peek(c.io.memA.in).toInt
-              val memAWrite = (peek(c.io.memA.writeEnable) != 0)
-              val memBAddr = peek(c.io.memB.address).toInt
-              val memBData = peek(c.io.memB.in).toInt
-              val memBWrite = (peek(c.io.memB.writeEnable) != 0)
+            poke(c.io.load, true)
+            for (i <- 0 until 255){
               step(1)
-              memA.step(memAWrite, memAAddr, memAData)
-              memB.step(memBWrite, memBAddr, memBData)
-              poke(c.io.memA.out, memA.memRead())
-              poke(c.io.memB.out, memB.memRead())
+            }
+            poke(c.io.load, false)
+            for (i <- 0 until cycle) {
+              step(1)
             }
             expect(c.io.testRegx8, parser.res)
           }

@@ -4,6 +4,8 @@ class TestBinParser(filePath: String) {
   val source = Source.fromFile(filePath)
   val lines = source.getLines
 
+  val memSize = 256
+
   var memAData = Map[BigInt, BigInt]()
   var memBData = Map[BigInt, BigInt]()
   var romData = Map[BigInt, BigInt]()
@@ -11,9 +13,24 @@ class TestBinParser(filePath: String) {
   var cycle = 0
 
   var romSeq:Seq[BigInt] = Seq()
+  var memASeq:Seq[BigInt] = Seq()
+  var memBSeq:Seq[BigInt] = Seq()
   lines.foreach(s => parseLine(s))
   for(i <- 0 to romData.size-1){
     romSeq = romSeq:+romData(i)
+  }
+  for(i <- 0 to memSize-1){
+    if(memAData.contains(i)){
+      memASeq = memASeq:+memAData(i)
+    }else{
+      memASeq = memASeq:+BigInt(0)
+    }
+
+    if(memBData.contains(i)){
+      memBSeq = memBSeq:+memBData(i)
+    }else{
+      memBSeq = memBSeq:+BigInt(0)
+    }
   }
 
   def parseLine(line:String){

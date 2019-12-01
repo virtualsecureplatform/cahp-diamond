@@ -37,6 +37,7 @@ class MainRegister(implicit val conf:CAHPConfig) extends Module{
 
   io.rs1Data := MainReg(io.rs1)
   io.rs2Data := MainReg(io.rs2)
+  io.testRegx8 := MainReg(8)
 
   when(io.writeEnable) {
     MainReg(io.rd) := io.writeData
@@ -44,5 +45,4 @@ class MainRegister(implicit val conf:CAHPConfig) extends Module{
       printf("%x Reg x%d <= 0x%x\n", io.testPC, io.rd, io.writeData)
     }
   }
-  io.testRegx8 := MainReg(8)
 }

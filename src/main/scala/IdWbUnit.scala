@@ -26,6 +26,8 @@ class WbUnitIn(implicit val conf:CAHPConfig) extends Bundle {
   val regWrite = Input(UInt(4.W))
   val regWriteData = Input(UInt(16.W))
   val regWriteEnable = Input(Bool())
+
+  val pc = Input(UInt(9.W))
 }
 
 class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
@@ -144,11 +146,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
     val immType = Wire(UInt(9.W))
     immType := DontCare
     when(inst(0) === 1.U) {
-      when(inst(2, 1) === InstructionCategory.InstI){
-          immType := ImmType.SImm8
-      }.otherwise{
-        immType := ImmType.SImm10
-      }
+      immType := ImmType.SImm10
     }.otherwise{
       when(inst(2, 1) === InstructionCategory.InstM){
         when(inst(5, 4) === 1.U){
@@ -376,6 +374,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
   io.wbOut.regWrite := io.rd
   io.wbOut.regWriteEnable := getRegWrite(io.in.inst)
   io.wbOut.regWriteData := DontCare
+  io.wbOut.pc := DontCare
 }
 
 class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
@@ -401,6 +400,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   mainRegister.io.rd := io.wbIn.regWrite
   mainRegister.io.writeData := io.wbIn.regWriteData
   mainRegister.io.writeEnable := io.wbIn.regWriteEnable&&io.wbEnable
+  mainRegister.io.testPC := io.wbIn.pc
 
   io.exOut := decoder.io.exOut
   io.exOut.pc := pIdReg.pc
@@ -468,6 +468,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   }
 
   io.testRegx8 := mainRegister.io.testRegx8
+  io.wbOut.pc := io.idIn.pc
   when(conf.debugId.B){
     printf("[ID] PC Address:0x%x\n", pIdReg.pc)
     printf("[ID] Instruction:0x%x\n", pIdReg.inst)

@@ -19,7 +19,7 @@ limitations under the License.
 
 class ExternalTestRomPort(implicit val conf:CAHPConfig) extends Bundle {
   val romAddress = Input(UInt((conf.romAddrWidth-2).W))
-  val romData = Output(UInt((conf.romCacheWidth.W)))
+  val romData = Output(UInt((32.W)))
 }
 class ExternalTestRom(implicit val conf: CAHPConfig) extends Module {
   val io = IO(new ExternalTestRomPort)

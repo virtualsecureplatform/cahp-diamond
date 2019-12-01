@@ -17,5 +17,6 @@ import chisel3._
 
 object Main extends App {
   implicit val conf = CAHPConfig()
-  chisel3.Driver.execute(args, () => new IdWbUnit())
+  conf.test = true;
+  chisel3.Driver.execute(args, () => new YosysTest(Seq(BigInt(0)), Seq(BigInt(0))))
 }
