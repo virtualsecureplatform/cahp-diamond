@@ -27,6 +27,7 @@ class WbUnitIn(implicit val conf:CAHPConfig) extends Bundle {
   val regWriteData = Input(UInt(16.W))
   val regWriteEnable = Input(Bool())
 
+  val finishFlag = Input(Bool())
   val pc = Input(UInt(9.W))
 }
 
@@ -44,6 +45,7 @@ class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val memOut = Flipped(new MemUnitIn)
   val wbOut = Flipped(new WbUnitIn)
   val stole = Output(Bool())
+  val finishFlag = Output(Bool())
 
   /*
   val debugRs = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
@@ -374,6 +376,7 @@ class Decoder(implicit val conf:CAHPConfig) extends Module {
   io.wbOut.regWrite := io.rd
   io.wbOut.regWriteEnable := getRegWrite(io.in.inst)
   io.wbOut.regWriteData := DontCare
+  io.wbOut.finishFlag := (io.in.inst(15,0) === 0xE.U)
   io.wbOut.pc := DontCare
 }
 
@@ -459,11 +462,13 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   io.memOut.in := rs2Data
   io.wbOut := decoder.io.wbOut
   io.stole := stole
+  io.finishFlag := io.wbIn.finishFlag
 
   when(stole){
     io.memOut.memWrite := false.B
     io.memOut.memRead := false.B
     io.wbOut.regWriteEnable := false.B
+    io.wbOut.finishFlag := false.B
     io.exOut.pcOpcode := 0.U
   }
 

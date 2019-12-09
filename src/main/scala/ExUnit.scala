@@ -87,6 +87,7 @@ class ExUnit(implicit val conf:CAHPConfig) extends Module {
     pWbReg := io.wbIn
     when(io.flush){
       pMemReg.memWrite := false.B
+      pWbReg.finishFlag := false.B
       pWbReg.regWriteEnable := false.B
       pExReg.pcOpcode := 0.U
     }

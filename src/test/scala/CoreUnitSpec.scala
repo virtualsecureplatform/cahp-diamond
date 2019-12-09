@@ -18,6 +18,8 @@ import java.io.File
 
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
+import scala.util.control.Breaks
+
 class CoreUnitSpec() extends ChiselFlatSpec {
   implicit val conf = CAHPConfig()
   conf.debugIf = false
@@ -47,8 +49,15 @@ class CoreUnitSpec() extends ChiselFlatSpec {
               step(1)
             }
             poke(c.io.load, false)
-            for (i <- 0 until cycle) {
-              step(1)
+            val b = new Breaks;
+            b.breakable{
+              for (i <- 0 until cycle) {
+                step(1)
+                if(peek(c.io.finishFlag) == 1){
+                  println("FINISH");
+                  b.break;
+                }
+              }
             }
             expect(c.io.testRegx8, parser.res)
           }

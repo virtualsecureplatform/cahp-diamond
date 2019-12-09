@@ -22,7 +22,7 @@ class MemPort(val conf:CAHPConfig) extends Bundle {
   val address = Input(UInt(16.W))
   val writeEnable = Input(Bool())
   val out = Output(UInt(8.W))
-  val load = if(conf.load) Input(Bool()) else Input(UInt(0.W))
+  val load = Input(Bool())
 
   override def cloneType: this.type = new MemPort(conf).asInstanceOf[this.type]
 }
@@ -69,8 +69,8 @@ class MemUnitTestPort extends Bundle{
 class MemUnitTest(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt])(implicit val conf:CAHPConfig) extends Module {
   val io = IO(new MemUnitTestPort)
   val unit = Module(new MemUnit)
-  val memA = Module(new ExternalRam(memAInit))
-  val memB = Module(new ExternalRam(memBInit))
+  val memA = Module(new ExternalTestRam(memAInit))
+  val memB = Module(new ExternalTestRam(memBInit))
 
 
   unit.io.in.in := io.in

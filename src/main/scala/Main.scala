@@ -18,5 +18,5 @@ import chisel3._
 object Main extends App {
   implicit val conf = CAHPConfig()
   conf.test = true;
-  chisel3.Driver.execute(args, () => new YosysTest(Seq(BigInt(0)), Seq(BigInt(0))))
+  chisel3.Driver.execute(args, () => new VSPCore)
 }

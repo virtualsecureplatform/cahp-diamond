@@ -32,8 +32,8 @@ class YosysTest(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt]) extends Modu
   conf.test = true
   val io = IO(new YosysTestPort)
   val coreUnit = Module(new CoreUnit)
-  val memA = Module(new ExternalRam(memAInit))
-  val memB = Module(new ExternalRam(memBInit))
+  val memA = Module(new ExternalTestRam(memAInit))
+  val memB = Module(new ExternalTestRam(memBInit))
   io.testRegx8 := coreUnit.io.testRegx8
   io.testRegWrite := coreUnit.io.testRegWrite
   io.testRegWriteEnable := coreUnit.io.testRegWriteEnable
@@ -95,9 +95,9 @@ class YosysTest3(implicit val conf: CAHPConfig) extends Module {
   io.out := io.in1 + io.in2
 }
 class TestRam(implicit val conf:CAHPConfig) extends Module{
-  val io = IO(new MemPort)
+  val io = IO(new MemPort(conf))
   val mem = Mem(4, UInt(2.W))
-  val pReg = RegInit(0.U.asTypeOf(new MemPort))
+  val pReg = RegInit(0.U.asTypeOf(new MemPort(conf)))
 
   pReg.address := io.address
   pReg.in := io.in

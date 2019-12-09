@@ -18,6 +18,7 @@ import chisel3._
 
 class TopUnitPort(implicit val conf:CAHPConfig) extends Bundle {
   val load = if(conf.load) Input(Bool()) else Input(UInt(0.W))
+  val finishFlag = Output(Bool())
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
 }
 
@@ -25,8 +26,8 @@ class TopUnit(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt])(implicit val c
   val io = IO(new TopUnitPort)
   val core = Module(new CoreUnit)
   val rom = Module(new ExternalTestRom())
-  val memA = Module(new ExternalRam(memAInit))
-  val memB = Module(new ExternalRam(memBInit))
+  val memA = Module(new ExternalTestRam(memAInit))
+  val memB = Module(new ExternalTestRam(memBInit))
 
   rom.io.romAddress := core.io.romAddr
   core.io.romData := rom.io.romData
@@ -46,4 +47,5 @@ class TopUnit(val memAInit:Seq[BigInt], val memBInit:Seq[BigInt])(implicit val c
   core.io.memB.out := memB.io.out
 
   io.testRegx8 := core.io.testRegx8
+  io.finishFlag := core.io.finishFlag
 }
