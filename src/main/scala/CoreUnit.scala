@@ -23,6 +23,7 @@ class CoreUnitPort(implicit val conf:CAHPConfig) extends Bundle {
   val memB = Flipped(new MemPort(conf))
 
   val finishFlag = Output(Bool())
+  val regOut = new MainRegisterOutPort()
 
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testRegWriteData = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
@@ -81,6 +82,9 @@ class CoreUnit(implicit val conf: CAHPConfig) extends Module {
   idwbUnit.io.wbIn := memUnit.io.wbOut
 
   io.finishFlag := idwbUnit.io.finishFlag
+  io.regOut := idwbUnit.io.regOut
+
+
   io.testRegWrite := memUnit.io.wbOut.regWrite
   io.testRegWriteEnable := memUnit.io.wbOut.regWriteEnable
   io.testRegWriteData := memUnit.io.wbOut.regWriteData

@@ -28,6 +28,8 @@ class MainRegisterPort(implicit val conf:CAHPConfig) extends Bundle {
 
   val testRegx8 = if (conf.test) Output(UInt(16.W)) else Output(UInt(0.W))
   val testPC = if(conf.test) Input(UInt(9.W)) else Input(UInt(0.W))
+
+  val regOut = new MainRegisterOutPort
 }
 
 class MainRegister(implicit val conf:CAHPConfig) extends Module{
@@ -45,4 +47,21 @@ class MainRegister(implicit val conf:CAHPConfig) extends Module{
       printf("%x Reg x%d <= 0x%x\n", io.testPC, io.rd, io.writeData)
     }
   }
+
+  io.regOut.x0 := MainReg(0)
+  io.regOut.x1 := MainReg(1)
+  io.regOut.x2 := MainReg(2)
+  io.regOut.x3 := MainReg(3)
+  io.regOut.x4 := MainReg(4)
+  io.regOut.x5 := MainReg(5)
+  io.regOut.x6 := MainReg(6)
+  io.regOut.x7 := MainReg(7)
+  io.regOut.x8 := MainReg(8)
+  io.regOut.x9 := MainReg(9)
+  io.regOut.x10 := MainReg(10)
+  io.regOut.x11 := MainReg(11)
+  io.regOut.x12 := MainReg(12)
+  io.regOut.x13 := MainReg(13)
+  io.regOut.x14 := MainReg(14)
+  io.regOut.x15 := MainReg(15)
 }

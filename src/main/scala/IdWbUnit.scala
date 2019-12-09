@@ -45,7 +45,9 @@ class IdWbUnitPort (implicit val conf:CAHPConfig) extends Bundle {
   val memOut = Flipped(new MemUnitIn)
   val wbOut = Flipped(new WbUnitIn)
   val stole = Output(Bool())
+
   val finishFlag = Output(Bool())
+  val regOut = new MainRegisterOutPort()
 
   /*
   val debugRs = if (conf.test) Output(UInt(4.W)) else Output(UInt(0.W))
@@ -463,6 +465,7 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   io.wbOut := decoder.io.wbOut
   io.stole := stole
   io.finishFlag := io.wbIn.finishFlag
+  io.regOut := mainRegister.io.regOut
 
   when(stole){
     io.memOut.memWrite := false.B
