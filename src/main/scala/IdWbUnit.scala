@@ -464,8 +464,15 @@ class IdWbUnit(implicit val conf: CAHPConfig) extends Module {
   io.memOut.in := rs2Data
   io.wbOut := decoder.io.wbOut
   io.stole := stole
-  io.finishFlag := io.wbIn.finishFlag
   io.regOut := mainRegister.io.regOut
+
+  val finishFlagReg = RegInit(false.B)
+  when(io.wbIn.finishFlag){
+    finishFlagReg := io.wbIn.finishFlag
+  }.otherwise{
+    finishFlagReg := finishFlagReg
+  }
+  io.finishFlag := finishFlagReg
 
   when(stole){
     io.memOut.memWrite := false.B
