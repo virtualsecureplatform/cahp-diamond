@@ -54,7 +54,7 @@ class CoreUnitSpec() extends ChiselFlatSpec {
               for (i <- 0 until cycle) {
                 step(1)
                 if(peek(c.io.finishFlag) == 1){
-                  println("FINISH");
+                  printf("CYCLE:%d\n", i);
                   b.break;
                 }
               }

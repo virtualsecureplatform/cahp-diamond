@@ -18,19 +18,12 @@ import chisel3._
 class ExternalRam(implicit val conf:CAHPConfig) extends Module{
   val io = IO(new MemPort(conf))
   val mem = Mem(256, UInt(8.W))
-  val pReg = RegInit(0.U.asTypeOf(new MemPort(conf)))
 
-  pReg.address := io.address
-  pReg.in := io.in
-  pReg.writeEnable := io.writeEnable
-
-  when(pReg.writeEnable) {
-    mem(pReg.address) := pReg.in
+  when(io.writeEnable) {
+    mem(io.address) := io.in
     when(conf.debugMem.B) {
-      printf("[MEM] MemWrite Mem[0x%x] <= Data:0x%x\n", pReg.address, pReg.in)
+      printf("[MEM] MemWrite Mem[0x%x] <= Data:0x%x\n", io.address, io.in)
     }
-    io.out := pReg.in
-  }.otherwise {
-    io.out := mem(pReg.address)
   }
+  io.out := mem(io.address)
 }

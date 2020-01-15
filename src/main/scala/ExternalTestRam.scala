@@ -35,25 +35,21 @@ class ExternalTestRam(val initContent:Seq[BigInt])(implicit val conf:CAHPConfig)
       io.out := loadRam(loadAddr)
       //printf("[MEM INIT] MemWrite Mem[0x%x] <= Data:0x%x\n", loadAddr, loadRam(loadAddr))
     }.otherwise {
-      when(pReg.writeEnable) {
-        mem(pReg.address) := pReg.in
+      when(io.writeEnable) {
+        mem(io.address) := io.in
         when(conf.debugMem.B) {
           printf("[MEM] MemWrite Mem[0x%x] <= Data:0x%x\n", pReg.address, pReg.in)
         }
-        io.out := pReg.in
-      }.otherwise {
-        io.out := mem(pReg.address)
       }
+      io.out := mem(io.address)
     }
   }else{
-    when(pReg.writeEnable) {
-      mem(pReg.address) := pReg.in
+    when(io.writeEnable) {
+      mem(io.address) := io.in
       when(conf.debugMem.B) {
         printf("[MEM] MemWrite Mem[0x%x] <= Data:0x%x\n", pReg.address, pReg.in)
       }
-      io.out := pReg.in
-    }.otherwise {
-      io.out := mem(pReg.address)
     }
+    io.out := mem(io.address)
   }
 }

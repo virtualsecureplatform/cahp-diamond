@@ -1,4 +1,5 @@
 import chisel3._
+import chisel3.util.Cat
 
 class InstRomPort extends Bundle {
   val address = Input(UInt(2.W))
@@ -106,4 +107,80 @@ class TestRam(implicit val conf:CAHPConfig) extends Module{
     mem(pReg.address) := pReg.in
   }
   io.out := mem(pReg.address)
+}
+
+class Addr4bit() extends Module{
+  val io = IO(new Bundle{
+    val inA = Input(UInt(4.W))
+    val inB = Input(UInt(4.W))
+    val out = Output(UInt(4.W))
+  })
+  io.out := io.inA + io.inB
+}
+
+class And4bit() extends Module{
+  val io = IO(new Bundle{
+    val inA = Input(UInt(4.W))
+    val inB = Input(UInt(4.W))
+    val out = Output(UInt(4.W))
+  })
+  io.out := io.inA & io.inB
+}
+
+class And4_2bit() extends Module{
+  val io = IO(new Bundle{
+    val inA = Input(UInt(4.W))
+    val inB = Input(UInt(4.W))
+    val out = Output(UInt(2.W))
+  })
+  val tmp = Wire(UInt(4.W))
+  tmp := io.inA & io.inB
+  io.out := Cat(tmp(0)&tmp(1), tmp(2)&tmp(3))
+}
+
+class Pass4bit() extends Module {
+  val io = IO(new Bundle{
+    val in = Input(UInt(4.W))
+    val out = Output(UInt(4.W))
+  })
+
+  io.out := io.in
+}
+
+class Register4bit() extends Module{
+  val io = IO(new Bundle{
+    val in = Input(UInt(4.W))
+    val out = Output(UInt(4.W))
+  })
+  val reg = RegInit(0.U(4.W))
+
+  reg := io.in
+  io.out := reg
+}
+
+class Mux4bit() extends Module{
+  val io = IO(new Bundle{
+    val inA = Input(UInt(4.W))
+    val inB = Input(UInt(4.W))
+    val sel = Input(Bool())
+    val out = Output(UInt(4.W))
+  })
+
+  when(!io.sel){
+    io.out := io.inA
+  }.otherwise{
+    io.out := io.inB
+  }
+}
+
+
+class Counter4bit extends Module {
+  val io = IO(new Bundle{
+    val out = Output(UInt(4.W))
+  })
+
+  val reg = RegInit(0.U(4.W))
+  io.out := reg
+
+  reg := reg + 1.U
 }
