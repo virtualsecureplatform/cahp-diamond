@@ -19,7 +19,7 @@ import chisel3.util.Cat
 
 class MemPort(val conf:CAHPConfig) extends Bundle {
   val in = Input(UInt(8.W))
-  val address = Input(UInt(16.W))
+  val address = Input(UInt(8.W))
   val writeEnable = Input(Bool())
   val out = Output(UInt(8.W))
   val load = Input(Bool())
